@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dukan-drishti"
+version = "1.0.0"
+description = "Owner control room for Indian retail: plain-language, back-tested answers about sales, stock, offers, credit and cash."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = []
+
+[project.scripts]
+dukan-drishti = "dukan_drishti.__main__:main"
+
+[tool.setuptools]
+packages = ["dukan_drishti"]
+
+[tool.setuptools.package-data]
+dukan_drishti = ["catalog.json"]
