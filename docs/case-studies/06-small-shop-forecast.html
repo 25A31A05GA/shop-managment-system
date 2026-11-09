@@ -1,0 +1,16 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Case 6: The kirana forecast that says "rough guide" · Dukan Drishti</title><style>:root{--bg:#11151c;--card:#1a2029;--bd:#333d4c;--pri:#ff8a2b;--tx:#eef1f6;--mut:#a9b2c0;color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 'Noto Sans',system-ui,Segoe UI,sans-serif}
+header{border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;gap:18px;flex-wrap:wrap;background:#161b23}
+header a{color:var(--mut);text-decoration:none;font-size:14px}header a:hover,header a.b{color:var(--pri)}
+main{max-width:880px;margin:0 auto;padding:28px 20px 80px}h1{color:var(--pri);line-height:1.2}h2{border-bottom:1px solid var(--bd);padding-bottom:6px;margin-top:2em}a{color:var(--pri)}
+code{background:#0f141b;padding:1px 6px;border-radius:4px;font-size:.9em}pre{background:#0f141b;border:1px solid var(--bd);padding:14px;overflow:auto;border-radius:8px}pre code{background:none;padding:0}
+table{border-collapse:collapse;display:block;overflow-x:auto}th,td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top}th{background:#161b23}
+blockquote{border-left:3px solid var(--pri);margin:1em 0;padding:2px 16px;background:#161b23;color:var(--mut)}img{max-width:100%}</style></head><body>
+<header><a class="b" href=".././">⌂ Dukan Drishti</a><a href="../dashboard.html">Live dashboard</a><a href="../report.html">Report</a><a href="../journey.html">Our journey</a><a href="../case-studies/">Case studies</a><a href="../architecture.html">Architecture</a><a href="../api.html">API</a><a href="../Dukan_Drishti.pptx">Slides</a></header>
+<main><h1>Case 6: The kirana forecast that says "rough guide"</h1>
+<p><strong>The situation.</strong> A single kirana sells about ₹10,000 a day, but day to day it jumps around far more than a 12-branch chain does.</p>
+<p><strong>What the engine sees.</strong> Back-test miss about <strong>10.9%</strong> on today's date (median <strong>12.3%</strong> over 60 dates). Because it is over 8%, the label says <strong>"rough guide"</strong> and the range is wide: about ₹1,42,662 to ₹1,98,487 for the next 14 days. For the 12-store supermarket the same method misses by about <strong>4.9% to 6.2%</strong> and says "fairly reliable".</p>
+<p><strong>What a human should do.</strong> Use the shape (weekends up, Diwali up) and the range, not the exact rupee figure.</p>
+<p><strong>What could fool it.</strong> One-off events: a wedding in the lane, a power cut, road works.</p>
+<p><strong>Lesson.</strong> The honest answer for a small shop is a range. A false-precision number would be worse.</p></main></body></html>

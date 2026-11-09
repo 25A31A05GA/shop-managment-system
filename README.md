@@ -3,10 +3,10 @@
 
 > **Know your shop in 30 seconds, and know *why*.** A zero-dependency Python engine + REST API + a live owner dashboard that turns bills, stock, credit and cash into plain-language answers with the reason attached. Everything runs on synthetic data, so it is safe to explore, fork and demo.
 
-[![CI](https://github.com/25A31A05GA/dukan-drishti/actions/workflows/ci.yml/badge.svg)](https://github.com/25A31A05GA/dukan-drishti/actions)
+[![CI](https://github.com/25A31A05GA/shop-managment-system/actions/workflows/ci.yml/badge.svg)](https://github.com/25A31A05GA/shop-managment-system/actions)
 ![Python](https://img.shields.io/badge/python-3.11%2B-blue) ![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen) ![Tests](https://img.shields.io/badge/tests-80%20passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-**[▶ Live demo](https://dukan-drishti.vercel.app/)** · [Our journey](docs/JOURNEY.md) · [Project report](docs/REPORT.md) · [Case studies](docs/case-studies/README.md) · [Slide deck](docs/Dukan_Drishti.pptx) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md)
+**[▶ Live demo](https://25a31a05ga.github.io/shop-managment-system/dashboard.html)** · [Our journey](docs/JOURNEY.md) · [Project report](docs/REPORT.md) · [Case studies](docs/case-studies/README.md) · [Slide deck](docs/Dukan_Drishti.pptx) · [API](docs/API.md) · [Architecture](docs/ARCHITECTURE.md)
 
 ![Today in one look](docs/assets/today.png)
 
@@ -49,7 +49,7 @@ A shop owner usually gets numbers without reasons: sales are up, but is it the f
 ## Quick start
 
 ```bash
-git clone https://github.com/25A31A05GA/dukan-drishti.git && cd dukan-drishti
+git clone https://github.com/25A31A05GA/shop-managment-system.git && cd shop-managment-system
 python -m dukan_drishti brief                 # the owner's morning brief
 python -m dukan_drishti ask "which brand sells least"
 python -m dukan_drishti search horlix
@@ -112,8 +112,8 @@ deploy/            render.yaml (API), vercel.json is in the repo root
 
 ## Deploy
 
-- **Website on Vercel (done):** import the repo at [vercel.com/new](https://vercel.com/new). `vercel.json` serves the `docs/` folder. Live: https://dukan-drishti.vercel.app/
-- **API on Render (optional):** New → Blueprint → pick this repo (`deploy/render.yaml`, uses the `Dockerfile`). Then open `/api/health`. Vercel cannot host this long-running Python server, so the website and API live in two places.
+- **Website:** [GitHub Pages](https://25a31a05ga.github.io/shop-managment-system/) publishes the `docs/` folder. The dashboard is at [dashboard.html](https://25a31a05ga.github.io/shop-managment-system/dashboard.html).
+- **API on Render (optional):** New → Blueprint → pick this repo (`deploy/render.yaml`, uses the `Dockerfile`). Then open `/api/health`. The static website and API are deployed separately.
 - **Docker:** `docker build -t dukan-drishti . && docker run -p 8080:8080 dukan-drishti`
 
 ## Limitations (please read)

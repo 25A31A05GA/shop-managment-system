@@ -1,0 +1,73 @@
+{
+ "forecast": {
+  "kirana": {
+   "median": 12.26051742111271,
+   "mean": 14.057543358451118,
+   "worst": 33.392983839573,
+   "share_under_8": 0.0
+  },
+  "super": {
+   "median": 6.168699566432551,
+   "mean": 8.117518685427452,
+   "worst": 30.089031271298587,
+   "share_under_8": 0.725
+  },
+  "chain": {
+   "median": 5.996744228079772,
+   "mean": 7.914965988387826,
+   "worst": 29.562218497975714,
+   "share_under_8": 0.725
+  },
+  "all": {
+   "median": 9.102476737932122,
+   "mean": 10.0300093440888,
+   "worst": 33.392983839573,
+   "share_under_8": 0.48333333333333334
+  }
+ },
+ "split": {
+  "kirana": {
+   "dates_with_festival_in_window": 15,
+   "median_mape_with_festival": 13.7,
+   "dates_without": 45,
+   "median_mape_without": 11.8,
+   "share_under_8_without": 0.0,
+   "share_under_8_with": 0.0
+  },
+  "super": {
+   "dates_with_festival_in_window": 15,
+   "median_mape_with_festival": 6.4,
+   "dates_without": 45,
+   "median_mape_without": 5.9,
+   "share_under_8_without": 0.8,
+   "share_under_8_with": 0.53
+  },
+  "chain": {
+   "dates_with_festival_in_window": 15,
+   "median_mape_with_festival": 5.8,
+   "dates_without": 45,
+   "median_mape_without": 5.7,
+   "share_under_8_without": 0.8,
+   "share_under_8_with": 0.53
+  }
+ },
+ "search": {
+  "queries": 400,
+  "top1": 0.865,
+  "top3": 0.9525,
+  "clean_top1": 0.975,
+  "prefix_typo_cases": 161,
+  "prefix_typo_top3_with_rule": 0.782608695652174,
+  "prefix_typo_top3_without_rule": 0.7577639751552795,
+  "junk_returning_results": 0.0125
+ },
+ "speed": {
+  "chain_world_build_s": 0.0046338930000047185,
+  "searches_per_s": 189.7378920762077,
+  "products": 231
+ },
+ "_meta": {
+  "note": "synthetic data; reproduce with: python -m dukan_drishti bench",
+  "dates": "60 dates, 6 days apart from 2026-01-01"
+ }
+}

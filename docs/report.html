@@ -1,0 +1,68 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dukan Drishti: Project Report · Dukan Drishti</title><style>:root{--bg:#11151c;--card:#1a2029;--bd:#333d4c;--pri:#ff8a2b;--tx:#eef1f6;--mut:#a9b2c0;color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.65 'Noto Sans',system-ui,Segoe UI,sans-serif}
+header{border-bottom:1px solid var(--bd);padding:12px 20px;display:flex;gap:18px;flex-wrap:wrap;background:#161b23}
+header a{color:var(--mut);text-decoration:none;font-size:14px}header a:hover,header a.b{color:var(--pri)}
+main{max-width:880px;margin:0 auto;padding:28px 20px 80px}h1{color:var(--pri);line-height:1.2}h2{border-bottom:1px solid var(--bd);padding-bottom:6px;margin-top:2em}a{color:var(--pri)}
+code{background:#0f141b;padding:1px 6px;border-radius:4px;font-size:.9em}pre{background:#0f141b;border:1px solid var(--bd);padding:14px;overflow:auto;border-radius:8px}pre code{background:none;padding:0}
+table{border-collapse:collapse;display:block;overflow-x:auto}th,td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top}th{background:#161b23}
+blockquote{border-left:3px solid var(--pri);margin:1em 0;padding:2px 16px;background:#161b23;color:var(--mut)}img{max-width:100%}</style></head><body>
+<header><a class="b" href="./">⌂ Dukan Drishti</a><a href="dashboard.html">Live dashboard</a><a href="report.html">Report</a><a href="journey.html">Our journey</a><a href="case-studies/">Case studies</a><a href="architecture.html">Architecture</a><a href="api.html">API</a><a href="Dukan_Drishti.pptx">Slides</a></header>
+<main><h1>Dukan Drishti: Project Report</h1>
+<h2>1. The problem</h2>
+<p>A shop owner with one kirana, a dozen supermarkets or a hundred chain stores cannot watch every bill. Numbers arrive late, in a form that needs an expert, and without a reason. The owner needs short answers: <em>what is going wrong today, what should I order, did my offer work, whose drawer is short.</em></p>
+<h2>2. The approach</h2>
+<ul>
+<li><strong>Plain language first.</strong> Each verdict (Good, Watch, Check) carries its reason and says what it is <em>not</em>.</li>
+<li><strong>Honest numbers.</strong> The forecast is back-tested on the last 14 days and shows its own miss. With under 8 weeks of history it shows nothing.</li>
+<li><strong>Same logic everywhere.</strong> The dashboard (browser) and the engine (Python) share one random-number generator and one rule set, so tests compare them directly.</li>
+</ul>
+<h2>3. How it is built</h2>
+<p><code>world</code> builds 3+ years of daily sales (level x growth x weekday x month x festival ramp x noise). <code>forecast</code>, <code>stock</code>, <code>insights</code>, <code>ledger</code>, <code>cash</code>, <code>finance</code>, <code>pricewatch</code>, <code>history</code> and <code>access</code> are rule modules. <code>assistant</code>, <code>search</code>, <code>brief</code> make it easy to ask. <code>api</code> serves everything as JSON, with styled pages for browsers. Standard library only.</p>
+<h2>4. Results (synthetic data; reproduce with <code>python -m dukan_drishti bench</code>)</h2>
+<p><strong>Forecast back-test</strong> (predict the last 14 days using only what was known 14 days earlier, 60 dates)</p>
+<table>
+<thead>
+<tr>
+<th>Size</th>
+<th>Median miss</th>
+<th>Share of dates under 8%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single kirana</td>
+<td>12.3%</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>12 supermarkets</td>
+<td>6.2%</td>
+<td>80% outside festival fortnights, 53% inside</td>
+</tr>
+<tr>
+<td>100-store chain</td>
+<td>6.0%</td>
+<td>80% outside, 53% inside</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Typo search</strong> (400 queries): right product in top 3: <strong>95.3%</strong>; top 1: 86.5%; exact word: 97.5%; random letters wrongly returning something: 1.25%. Half-typed words with a slip ("horlix"): 78.3% with the new rule, 75.8% without.</p>
+<p><strong>Matching the dashboard:</strong> sales, 231 products, weekday pattern, forecast, back-test, offer profit, brand and source verdicts, and the full reorder plan match to 12 decimals. Text-parity tests compare profit, cash, price, credit, expiry, history and supplier screens with what the dashboard itself prints.</p>
+<p><strong>Tests:</strong> 80, all passing, about 10 seconds, no dependencies.</p>
+<h2>5. Attempts and failures</h2>
+<p>Eight logged problems, each with the cause and the fix, are in <a href="journey.html">JOURNEY.md</a>. The two that mattered most: the dashboard secretly has 231 products, not 18; and my first search fix lowered accuracy until I re-ran the benchmark.</p>
+<h2>6. Cases</h2>
+<p>Seven worked cases in <a href="case-studies/index.html">case-studies/</a>, including a Diwali stock-out, an offer that lost money, a supplier fairness test and a drawer that is short.</p>
+<h2>7. Limitations</h2>
+<ul>
+<li>Synthetic data; never tested on a real shop.</li>
+<li>The forecast learns festival effects from only a few past years and ignores one-off events.</li>
+<li>A single kirana's forecast is rough by nature.</li>
+<li>No database, login or sending yet.</li>
+<li>Search is typo-tolerant, not meaning-aware ("sugar" will not find "chini").</li>
+</ul>
+<h2>8. What I would do next</h2>
+<p>Real CSV import, SQLite, Telugu and Hindi questions, scheduled WhatsApp brief, a measured test on a real shop with the owner's permission.</p>
+<h2>9. Responsible use</h2>
+<p>These are leads for a human to check. A short drawer is not theft, a short delivery is not dishonesty, and a slow brand is not a bad brand. Always say why.</p></main></body></html>

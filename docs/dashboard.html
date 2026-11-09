@@ -1,0 +1,1020 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><title>Owner Control Room</title></head><body><a id="dd-home-link" href="./" style="position:fixed;left:12px;bottom:12px;z-index:9999;background:#161b23;color:#ff8a2b;border:1px solid #333d4c;border-radius:10px;padding:6px 12px;font:600 12px system-ui;text-decoration:none">← Project home</a>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
+<style>
+/* Layout: sample-data banner, header with size/style switches, a tab bar (one tab per question an owner asks),
+   then the selected tab. Dark charcoal/navy with a single orange accent; blue only for chart bars. */
+:root {
+  --bg: #11151c; --panel: #1a2029; --panel-2: #232b37; --text: #eef1f6; --muted: #a9b2c0; --border: #333d4c;
+  --accent: #ff8a2b; --accent-ink: #1b1002; --focus: #ffd2a8;
+  --good: #7ee2a1; --good-bg: #16301f; --watch: #f1d58a; --watch-bg: #33290f; --check: #ffb4b4; --check-bg: #3a1d1d;
+  --bar: #5b8def; --bar-dim: #3a4a6b; --line: #e8c46a;
+  --font: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f5f8; --panel: #fff; --panel-2: #e8ecf2; --text: #161b24; --muted: #4d5869; --border: #c9d0db;
+  --accent: #c25a00; --accent-ink: #fff; --focus: #7a3600;
+  --good: #11663a; --good-bg: #dff3e6; --watch: #5c4300; --watch-bg: #fff1c9; --check: #8a1c1c; --check-bg: #fde4e4;
+  --bar: #2f5fd0; --bar-dim: #b9c6e6; --line: #8a5a00; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f3f5f8; --panel: #fff; --panel-2: #e8ecf2; --text: #161b24; --muted: #4d5869; --border: #c9d0db;
+  --accent: #c25a00; --accent-ink: #fff; --focus: #7a3600;
+  --good: #11663a; --good-bg: #dff3e6; --watch: #5c4300; --watch-bg: #fff1c9; --check: #8a1c1c; --check-bg: #fde4e4;
+  --bar: #2f5fd0; --bar-dim: #b9c6e6; --line: #8a5a00; color-scheme: light; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); line-height: 1.5; font-size: 16px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 40px; }
+body.easy { font-size: 18px; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.page { max-width: 76rem; margin: 0 auto; display: grid; gap: 18px; padding-top: 14px; }
+.sample { background: var(--watch-bg); color: var(--watch); border-radius: 10px; padding: 9px 14px; font-size: .85em; }
+header { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; justify-content: space-between; }
+h1 { margin: 0; font-size: 1.7rem; text-wrap: balance; }
+h2 { margin: 0 0 8px; font-size: 1.15rem; text-wrap: balance; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+.sub { color: var(--muted); margin: 2px 0 0; }
+.acc { color: var(--accent); }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: end; }
+.controls label { display: grid; gap: 3px; font-size: .75em; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+select, .seg button, .controls input { background: var(--panel); border: 1px solid var(--border); border-radius: 9px; padding: 8px 12px; cursor: pointer; }
+.controls input { cursor: text; }
+select { min-width: 11rem; text-transform: none; letter-spacing: 0; color: var(--text); font-size: 1rem; }
+.seg { display: inline-flex; flex-wrap: wrap; }
+.seg button { border-radius: 0; margin: 0; }
+.seg button:first-child { border-radius: 9px 0 0 9px; } .seg button:last-child { border-radius: 0 9px 9px 0; }
+.seg button + button { border-inline-start: 0; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.tabs button { background: none; border: 0; border-bottom: 3px solid transparent; padding: 10px 14px; cursor: pointer; white-space: nowrap; color: var(--muted); }
+.tabs button[aria-selected="true"] { color: var(--text); border-bottom-color: var(--accent); font-weight: 600; }
+.tabs button:hover { color: var(--text); }
+
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px; }
+.tile { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; display: grid; gap: 2px; min-width: 0; align-content: start; }
+.tile .q { color: var(--muted); font-size: .9em; }
+.tile .big { font-size: 2rem; font-weight: 700; line-height: 1.15; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.tile .cmp { font-size: .9em; } .tile .why { color: var(--muted); font-size: .8em; }
+.up { color: var(--good); } .down { color: var(--check); } .flat { color: var(--muted); }
+.cols { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 16px; align-items: start; }
+.cols2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 16px; align-items: start; }
+.box { background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 16px; min-width: 0; }
+.stack { display: grid; gap: 16px; }
+.alerts { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.alert { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; padding: 10px 12px; background: var(--panel-2); border-radius: 10px; }
+.pill { display: inline-block; border-radius: 999px; padding: 1px 11px; font-size: .78em; font-weight: 600; white-space: nowrap; align-self: start; }
+.pill.good { background: var(--good-bg); color: var(--good); } .pill.watch { background: var(--watch-bg); color: var(--watch); } .pill.check { background: var(--check-bg); color: var(--check); }
+.alert b { font-weight: 600; } .alert .do { grid-column: 2; color: var(--muted); font-size: .9em; }
+.empty, .note { color: var(--muted); font-size: .88em; }
+.say { background: var(--panel-2); border-radius: 10px; padding: 12px 14px; margin: 0 0 12px; }
+.say b { color: var(--accent); }
+svg { display: block; width: 100%; height: auto; }
+svg text { fill: var(--muted); font-size: 11px; font-family: var(--font); }
+.legend { color: var(--muted); font-size: .85em; margin: 6px 0 0; display: flex; gap: 14px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; }
+.tools { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end; margin-bottom: 12px; }
+.tbl { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 10px; text-align: start; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { font-size: .8em; color: var(--muted); font-weight: 600; }
+th button { background: none; border: 0; padding: 0; font-weight: 600; font-size: inherit; color: inherit; cursor: pointer; }
+td.n, th.n { text-align: end; font-variant-numeric: tabular-nums; }
+td.wrap { white-space: normal; min-width: 14rem; }
+.pager { display: flex; gap: 12px; align-items: center; margin-top: 10px; color: var(--muted); }
+.btn { background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 6px 14px; cursor: pointer; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.go { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+.hbar { display: grid; grid-template-columns: minmax(7rem, 11rem) 1fr auto; gap: 4px 10px; align-items: center; margin: 4px 0; }
+.hbar .tr { background: var(--panel-2); border-radius: 6px; height: 14px; overflow: hidden; } .hbar .tr i { display: block; height: 100%; background: var(--bar); border-radius: 6px; }
+.hbar .tr i.hot { background: var(--accent); } .hbar .tr i.cold { background: var(--bar-dim); }
+.hbar span:last-child { font-variant-numeric: tabular-nums; font-size: .9em; }
+ul.plain { margin: 6px 0 0; padding-inline-start: 1.2em; display: grid; gap: 4px; }
+.chat { display: grid; gap: 10px; }
+.msg { border-radius: 12px; padding: 10px 14px; max-width: 60rem; } .msg.q { background: var(--panel-2); justify-self: end; } .msg.a { background: var(--panel); border: 1px solid var(--border); }
+.msg .how { color: var(--muted); font-size: .82em; margin-top: 6px; border-top: 1px dashed var(--border); padding-top: 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; } .chips button { background: var(--panel-2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.chips button:hover { border-color: var(--accent); }
+.askrow { display: flex; gap: 8px; flex-wrap: wrap; } .askrow input { flex: 1 1 16rem; background: var(--panel-2); border: 1px solid var(--border); border-radius: 9px; padding: 9px 12px; }
+@media (max-width: 860px) { .cols { grid-template-columns: minmax(0, 1fr); } select { min-width: 0; width: 100%; } .controls label { flex: 1 1 12rem; } .hbar { grid-template-columns: minmax(5rem, 8rem) 1fr auto; } }
+@media (prefers-reduced-motion: no-preference) { .seg button, .btn, .tabs button { transition: background .15s, color .15s; } }
+</style>
+
+<div class="page" id="page">
+  <div class="sample" role="note"><strong>SAMPLE DATA.</strong> Every figure on this page, including the history, brands, regions, offers and forecasts, is made up by the preview so you can see how the screens work. None of it is real business performance. In the real app these numbers come only from your own bills, purchases, deliveries and cash records.</div>
+
+  <header>
+    <div>
+      <h1>Owner <span class="acc">Control Room</span></h1>
+      <p class="sub" id="subtitle"></p>
+    </div>
+    <div class="controls">
+      <label>Business size
+        <select id="size">
+          <option value="kirana">Village kirana · 1 shop</option>
+          <option value="super" selected>Supermarket · 12 branches</option>
+          <option value="chain">Retail chain · 100 branches</option>
+        </select>
+      </label>
+      <label>Screen style
+        <span class="seg" role="group" aria-label="Screen style">
+          <button type="button" id="v-easy" aria-pressed="false">Easy</button>
+          <button type="button" id="v-full" aria-pressed="true">Full detail</button>
+        </span>
+      </label>
+    </div>
+  </header>
+
+  <div class="tabs" role="tablist" aria-label="Sections" id="tabs"></div>
+  <main id="tab" role="tabpanel" class="stack"></main>
+</div>
+
+<script>
+/* =====================================================================================================
+   Deterministic SAMPLE data (seeded: identical on every visit). Nothing here is a real business result.
+   ===================================================================================================== */
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const TOWNS = ["Guntur","Hyderabad","Vijayawada","Warangal","Nellore","Tirupati","Kurnool","Rajahmundry","Karimnagar","Khammam","Visakhapatnam","Nizamabad","Anantapur","Kakinada","Eluru","Ongole","Mahbubnagar","Adilabad","Chittoor","Kadapa","Nalgonda","Machilipatnam","Srikakulam","Vizianagaram","Secunderabad"];
+const SIZES = {
+  kirana: { count: 1, regions: ["Home town"], lo: 7000, hi: 13000, name: "Your kirana shop" },
+  super:  { count: 12, regions: ["Coastal", "Telangana", "Rayalaseema"], lo: 90000, hi: 280000, name: "Sample Supermarkets" },
+  chain:  { count: 100, regions: ["Coastal", "Telangana", "Rayalaseema", "North Andhra", "Karnataka border", "Tamil border"], lo: 45000, hi: 210000, name: "Sample Retail Chain" },
+};
+const inr = (n) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(n));
+const num = (n) => new Intl.NumberFormat("en-IN").format(Math.round(n));
+const short = (n) => { const a = Math.abs(n); return a >= 1e7 ? (n / 1e7).toFixed(2) + " Cr" : a >= 1e5 ? (n / 1e5).toFixed(2) + " L" : a >= 1e3 ? (n / 1e3).toFixed(1) + "k" : String(Math.round(n)); };
+const pct = (a, b) => (b ? ((a - b) / b) * 100 : 0);
+const sgn = (v, d = 1) => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(d) + "%";
+const cls = (v) => (v > 1 ? "up" : v < -1 ? "down" : "flat");
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sum = (a, f = (x) => x) => a.reduce((s, x) => s + f(x), 0);
+const mean = (a) => (a.length ? sum(a) / a.length : 0);
+
+const TODAY = new Date(); TODAY.setHours(0, 0, 0, 0);
+const dayMs = 864e5;
+const dkey = (d) => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const shortDate = (d) => d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+// Festival dates are configurable in the real app (they move every year). These are sample settings.
+const FESTIVALS = [
+  { name: "Diwali", peak: 0.75, dates: ["2024-11-01", "2025-10-20", "2026-11-08"] },
+  { name: "Sankranti", peak: 0.40, dates: ["2024-01-14", "2025-01-14", "2026-01-14", "2027-01-14"] },
+  { name: "Ugadi", peak: 0.30, dates: ["2024-04-09", "2025-03-30", "2026-03-19"] },
+  { name: "Christmas", peak: 0.15, dates: ["2024-12-25", "2025-12-25", "2026-12-25"] },
+];
+
+function build(sizeKey) {
+  const S = SIZES[sizeKey], r = rng(sizeKey.length * 7919 + S.count);
+  const branches = [];
+  for (let i = 0; i < S.count; i++) {
+    const base = S.lo + r() * (S.hi - S.lo), days = [];
+    for (let d = 13; d >= 0; d--) { const weekend = [0, 6].includes(new Date(Date.now() - d * dayMs).getDay()); days.push(base * (0.82 + r() * 0.36) * (weekend ? 1.15 : 1)); }
+    const today = days[13], yest = days[12];
+    const bills = Math.max(8, Math.round(today / (sizeKey === "kirana" ? 140 : 310 + r() * 80)));
+    const margin = 0.11 + r() * 0.09;
+    const cashGap = r() < 0.18 ? -Math.round(120 + r() * 480) : (r() < 0.08 ? Math.round(80 + r() * 150) : Math.round((r() - .5) * 60));
+    const lowStock = Math.floor(r() * r() * (sizeKey === "kirana" ? 6 : 14));
+    const town = TOWNS[i % TOWNS.length] + (i >= TOWNS.length ? " " + (Math.floor(i / TOWNS.length) + 1) : "");
+    branches.push({ id: i + 1, name: sizeKey === "kirana" ? S.name : town, region: S.regions[i % S.regions.length], days, today, yest, bills, margin, cashGap, lowStock, base });
+  }
+  return { S, branches };
+}
+function statusOf(b) { const drop = pct(b.today, b.yest); if (Math.abs(b.cashGap) >= 300 || drop <= -22) return "check"; if (Math.abs(b.cashGap) >= 120 || drop <= -10 || b.lowStock >= 9) return "watch"; return "good"; }
+const LABEL = { good: "Going well", watch: "Keep an eye", check: "Please check" };
+
+const st = { size: "super", easy: false, tab: "overview", sort: "today", dir: -1, region: "All", q: "", page: 0, hperiod: "weekly", bcat: "All", bsort: "revenue", rprod: 0, ostrat: "all", uplift: true, cover: 7, chat: [] };
+let data = build(st.size), H = null, B = null, T = null;
+
+function totals() {
+  const Bs = data.branches, s = (f) => sum(Bs, f);
+  const today = s((b) => b.today), yest = s((b) => b.yest);
+  return { today, yest, bills: s((b) => b.bills), profit: s((b) => b.today * b.margin), cashGap: s((b) => b.cashGap),
+    trend: Array.from({ length: 14 }, (_, i) => s((b) => b.days[i])), low: s((b) => b.lowStock) };
+}
+
+/* ---------- 3+ years of daily sales history (so day / week / month / year views have something to show) ---------- */
+const N = 3 * 365 + 40;
+const dateAt = (i) => new Date(TODAY.getTime() - (N - 1 - i) * dayMs);
+function buildHistory() {
+  const r = rng(4242 + data.S.count), level = mean(T.trend), out = new Array(N);
+  const wd = [1.13, 0.93, 0.92, 0.94, 0.97, 1.04, 1.14], mo = [1.05, .95, 1, 1, .97, .93, .94, 1, 1, 1.07, 1.1, 1.1];
+  const fest = {}; FESTIVALS.forEach((f) => f.dates.forEach((d) => (fest[d] = f)));
+  const festDates = FESTIVALS.flatMap((f) => f.dates.map((d) => ({ t: new Date(d + "T00:00:00").getTime(), peak: f.peak })));
+  for (let i = 0; i < N; i++) {
+    const d = dateAt(i), ago = N - 1 - i;
+    let v = level * Math.pow(1.16, -ago / 365) * wd[d.getDay()] * mo[d.getMonth()] * (0.94 + r() * 0.12);
+    festDates.forEach((f) => { const o = Math.round((d.getTime() - f.t) / dayMs); if (o >= -10 && o <= 3) v *= 1 + f.peak * Math.exp(-Math.pow(o + 1.5, 2) / 18); });
+    out[i] = v;
+  }
+  for (let k = 0; k < 14; k++) out[N - 14 + k] = T.trend[k]; // last two weeks equal the Overview numbers
+  return out;
+}
+const sumRange = (a, b) => sum(H.slice(Math.max(0, a), Math.max(0, b + 1)));
+function festivalOn(i) { const k = dkey(dateAt(i)); return FESTIVALS.find((f) => f.dates.includes(k)); }
+
+/* ---------- brand / product sample data (units come from revenue shares, so it scales with business size) ---------- */
+const PRODUCT_DEFS = [
+  // category, brand, display name, revenue weight, price, cost, 30-day growth %, stock-out days (of 30), offer days (of 30), unit
+  ["Health drinks", "Horlicks", "Horlicks 500 g", 9, 245, 215, 6, 1, 6, "packets"],
+  ["Health drinks", "Boost", "Boost 500 g", 7, 235, 207, -4, 2, 0, "packets"],
+  ["Health drinks", "Bournvita", "Bournvita 500 g", 6, 240, 211, 3, 1, 0, "packets"],
+  ["Health drinks", "Complan", "Complan 500 g", 2.2, 430, 380, -9, 6, 0, "packets"],
+  ["Rice", "Sona Masoori", "Sona Masoori rice (loose)", 14, 58, 50, 9, 1, 4, "kg"],
+  ["Rice", "Basmati", "Basmati rice (loose)", 6, 115, 98, 2, 0, 0, "kg"],
+  ["Rice", "HMT", "HMT rice (loose)", 3.5, 66, 57, -12, 4, 0, "kg"],
+  ["Pulses", "Toor dal", "Toor dal (loose)", 8, 152, 130, 5, 1, 0, "kg"],
+  ["Pulses", "Chana dal", "Chana dal (loose)", 5, 92, 80, 0, 2, 6, "kg"],
+  ["Pulses", "Moong dal", "Moong dal (loose)", 3, 128, 110, -6, 3, 0, "kg"],
+  ["Cooking oil", "Fortune", "Fortune oil 1 L", 7, 148, 138, 2, 0, 10, "bottles"],
+  ["Cooking oil", "Gold Winner", "Gold Winner oil 1 L", 4, 165, 152, -5, 3, 0, "bottles"],
+  ["Cooking oil", "Saffola", "Saffola oil 1 L", 3, 210, 190, 11, 0, 0, "bottles"],
+  ["Tea", "Red Label", "Red Label 250 g", 4.5, 125, 112, 1, 1, 0, "packets"],
+  ["Tea", "Tata Tea Gold", "Tata Tea Gold 250 g", 4, 142, 128, 4, 0, 3, "packets"],
+  ["Tea", "Taj Mahal", "Taj Mahal 250 g", 2, 190, 172, -8, 2, 0, "packets"],
+  ["Biscuits", "Parle-G", "Parle-G family pack", 6, 40, 34.5, 3, 0, 0, "packs"],
+  ["Biscuits", "Good Day", "Good Day family pack", 4, 55, 47.5, -2, 1, 5, "packs"],
+];
+function buildBrands() {
+  const last30 = sumRange(N - 30, N - 1), totalW = sum(PRODUCT_DEFS, (p) => p[3]), pool = last30 * 0.6;
+  return PRODUCT_DEFS.map((p, i) => {
+    const rev = pool * p[3] / totalW, units = rev / p[4], prevUnits = units / (1 + p[6] / 100);
+    return { id: i, cat: p[0], brand: p[1], name: p[2], price: p[4], cost: p[5], g: p[6], stockout: p[7], offer: p[8], unit: p[9],
+      units, prevUnits, rev, margin: (p[4] - p[5]) / p[4], profit: units * (p[4] - p[5]) };
+  });
+}
+
+/* =====================================================================================================
+   Small chart helpers (SVG, theme tokens only)
+   ===================================================================================================== */
+function barChart(items, opts = {}) { // items: [{label, v, ref, hot, tip}]
+  const W = 640, Ht = opts.h || 220, L = 52, Bm = 30, n = items.length, bw = (W - L) / n;
+  const max = Math.max(...items.map((x) => Math.max(x.v, x.ref || 0))) * 1.12 || 1;
+  const y = (v) => Ht - Bm - (v / max) * (Ht - Bm - 10);
+  const grid = [0, .5, 1].map((f) => `<line x1="${L}" x2="${W}" y1="${y(max * f)}" y2="${y(max * f)}" stroke="var(--border)"/><text x="${L - 6}" y="${y(max * f) + 4}" text-anchor="end">${short(max * f)}</text>`).join("");
+  const every = Math.ceil(n / 12);
+  const bars = items.map((x, i) => `<rect x="${L + i * bw + bw * .12}" y="${y(x.v)}" width="${bw * .76}" height="${Ht - Bm - y(x.v)}" rx="3" fill="${x.hot ? "var(--accent)" : "var(--bar)"}"><title>${esc(x.tip || x.label)}: ${inr(x.v)}${x.ref ? " (a year earlier: " + inr(x.ref) + ")" : ""}</title></rect>` +
+    ((i % every === 0 || i === n - 1) ? `<text x="${L + i * bw + bw / 2}" y="${Ht - 10}" text-anchor="middle">${esc(x.label)}</text>` : "")).join("");
+  const pts = items.filter((x) => x.ref);
+  const line = pts.length > 1 ? `<polyline fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="5 3" points="${items.map((x, i) => x.ref ? `${L + i * bw + bw / 2},${y(x.ref)}` : "").filter(Boolean).join(" ")}"/>` : "";
+  return `<svg viewBox="0 0 ${W} ${Ht}" role="img" aria-label="${esc(opts.aria || "Bar chart")}">${grid}${bars}${line}</svg>`;
+}
+const hbars = (rows, fmt = (v) => num(v)) => { const max = Math.max(...rows.map((r) => r.v)) || 1; return rows.map((r) => `<div class="hbar"><span>${esc(r.label)}</span><span class="tr"><i class="${r.cls || ""}" style="width:${Math.max(2, r.v / max * 100)}%"></i></span><span>${fmt(r.v)}</span></div>`).join(""); };
+const setTab = (html) => { $("tab").innerHTML = html; };
+const tile = (q, big, cmp, why) => `<div class="tile"><span class="q">${q}</span><span class="big">${big}</span><span class="cmp">${cmp || ""}</span><span class="why">${why || ""}</span></div>`;
+
+/* =====================================================================================================
+   TAB: Overview (today, attention list, last 14 days, branches, next steps)
+   ===================================================================================================== */
+function overview() {
+  const d = pct(T.today, T.yest), Bs = data.branches, multi = Bs.length > 1;
+  const cmp = (v, l) => `<span class="${cls(v)}">${v > 1 ? "▲" : v < -1 ? "▼" : "●"} ${Math.abs(v).toFixed(1)}% ${l}</span>`;
+  const tiles = [
+    tile("How much money came in today?", inr(T.today), cmp(d, "vs yesterday"), "Total of all bills made today."),
+    tile("How many bills were made?", num(T.bills), `<span class="flat">average bill ${inr(T.today / T.bills)}</span>`, "Each bill lists every item sold."),
+    tile("How much did I probably earn?", inr(T.profit), `<span class="flat">estimate · ${(T.profit / T.today * 100).toFixed(0)}% of sales</span>`, "Sales minus what the goods cost. Rent and salaries are not counted yet."),
+    tile("Does the cash match the bills?", T.cashGap === 0 ? "Matches" : (T.cashGap < 0 ? "Short " : "Extra ") + inr(Math.abs(T.cashGap)), `<span class="${Math.abs(T.cashGap) > 400 ? "down" : "flat"}">${Bs.filter((b) => Math.abs(b.cashGap) >= 120).length} ${multi ? "branches" : "drawer"} to look at</span>`, "Cash counted at closing compared with what the bills say should be there."),
+  ];
+  const out = [];
+  const wc = [...Bs].sort((a, b) => a.cashGap - b.cashGap)[0];
+  if (wc && wc.cashGap <= -120) out.push(["check", `Counter cash is ${inr(-wc.cashGap)} short${multi ? " at " + wc.name : ""}`, "Ask the closing staff to recount and note a reason. A difference is a reason to look, not proof of a problem."]);
+  const dr = [...Bs].sort((a, b) => pct(a.today, a.yest) - pct(b.today, b.yest))[0];
+  if (dr && pct(dr.today, dr.yest) <= -10) out.push(["watch", `Sales fell ${Math.abs(pct(dr.today, dr.yest)).toFixed(0)}% ${multi ? "at " + dr.name : "since yesterday"}`, "Check for a power cut, stock-outs of fast sellers, or a local event before drawing conclusions."]);
+  out.push(["check", "Delivery is 10 packets short on one order", "Ordered 100 packets at ₹100, received 90: about ₹1,000 to sort out with the supplier. Compare with the delivery slip first."]);
+  if (T.low > 0) out.push([T.low > 25 ? "check" : "watch", `${num(T.low)} products are running low${multi ? " across all branches" : ""}`, "Open the Stock tab to see what to order and how much."]);
+  const dv = daysTo("Diwali");
+  if (dv !== null && dv >= 0 && dv <= 30) out.push(["watch", `Diwali is in ${dv} day${dv === 1 ? "" : "s"}`, "Open the Offers tab for what worked last year, and the Forecast tab for how much extra stock to expect to sell."]);
+  out.push(["watch", `${Math.max(1, Math.round(Bs.length / 6))} purchase order${Bs.length > 6 ? "s" : ""} waiting for your approval`, "Orders above the limit you set wait for an owner or director to approve them."]);
+  const items = st.easy ? out.slice(0, 3) : out;
+  setTab(`<section><h2>Today in one look</h2><div class="tiles">${tiles.join("")}</div></section>
+  <div class="cols"><section class="box"><h2>Needs your attention</h2><ul class="alerts">${items.map((a) => `<li class="alert"><span class="pill ${a[0]}">${a[0] === "check" ? "Check" : "Watch"}</span><b>${esc(a[1])}</b><span class="do">${esc(a[2])}</span></li>`).join("")}</ul></section>
+  <section class="box"><h2>Money received, last 14 days</h2>${barChart(T.trend.map((v, i) => { const dt = new Date(TODAY.getTime() - (13 - i) * dayMs); return { label: dt.getDate() + "/" + (dt.getMonth() + 1), v, hot: i === 13, tip: dt.toDateString() }; }), { aria: "Money received each of the last 14 days; today in orange" })}
+  <p class="legend">Orange bar = today. L = lakh (1,00,000), Cr = crore. Open the History tab for weeks, months and years.</p></section></div>
+  <section class="box" id="branches-box"></section>`);
+  branchSection();
+}
+function daysTo(fname) { const f = FESTIVALS.find((x) => x.name === fname); const next = f.dates.map((d) => new Date(d + "T00:00:00")).find((d) => d >= TODAY); return next ? Math.round((next - TODAY) / dayMs) : null; }
+function branchSection() {
+  const box = $("branches-box"), Bs = data.branches;
+  if (Bs.length === 1) { const b = Bs[0]; box.innerHTML = `<h2>Your shop today</h2><div class="tiles">${tile("Items running low", b.lowStock, "", "Open the Stock tab to see which ones.")}${tile("Counter cash short / extra", b.cashGap === 0 ? "None" : (b.cashGap < 0 ? "−" : "+") + inr(Math.abs(b.cashGap)), "", "Counted cash vs bills.")}${tile("Status", `<span class="pill ${statusOf(b)}">${LABEL[statusOf(b)]}</span>`, "", "Based on sales trend, cash and stock.")}</div><p class="note">With one shop there is no branch list. Add a second branch later and this area becomes the branch comparison table, without losing any history.</p>`; return; }
+  const regions = ["All", ...new Set(Bs.map((b) => b.region))];
+  let rows = Bs.filter((b) => (st.region === "All" || b.region === st.region) && (!st.q || b.name.toLowerCase().includes(st.q.toLowerCase())));
+  const key = { name: (b) => b.name, today: (b) => b.today, change: (b) => pct(b.today, b.yest), cash: (b) => b.cashGap, low: (b) => b.lowStock, bills: (b) => b.bills, margin: (b) => b.margin, status: (b) => ["good", "watch", "check"].indexOf(statusOf(b)) }[st.sort];
+  rows.sort((a, b) => { const x = key(a), y = key(b); return (typeof x === "string" ? x.localeCompare(y) : x - y) * st.dir; });
+  const per = st.easy ? 5 : 10, pages = Math.max(1, Math.ceil(rows.length / per)); st.page = Math.min(st.page, pages - 1);
+  const shown = rows.slice(st.page * per, st.page * per + per), full = !st.easy;
+  const th = (k, label, c = "") => `<th class="${c}" aria-sort="${st.sort === k ? (st.dir > 0 ? "ascending" : "descending") : "none"}"><button type="button" data-sort="${k}">${label}${st.sort === k ? (st.dir > 0 ? " ▲" : " ▼") : ""}</button></th>`;
+  box.innerHTML = `<h2>${Bs.length} branches: who is doing well and who needs help</h2>
+  <div class="tools"><div class="controls"><label>Find a branch<input id="q" type="search" value="${esc(st.q)}" placeholder="Type a town name"></label><label>Region<select id="reg">${regions.map((r) => `<option${r === st.region ? " selected" : ""}>${esc(r)}</option>`).join("")}</select></label></div></div>
+  <div class="tbl"><table><thead><tr>${th("name", "Branch")}${full ? "<th>Region</th>" : ""}${th("today", "Money today", "n")}${th("change", "Vs yesterday", "n")}${full ? th("bills", "Bills", "n") + th("margin", "Est. profit", "n") : ""}${th("cash", "Counter cash short / extra", "n")}${th("low", "Low stock", "n")}${th("status", "Status")}</tr></thead>
+  <tbody>${shown.map((b) => { const c = pct(b.today, b.yest), s = statusOf(b); return `<tr><td>${esc(b.name)}</td>${full ? `<td>${esc(b.region)}</td>` : ""}<td class="n">${inr(b.today)}</td><td class="n ${cls(c)}">${sgn(c)}</td>${full ? `<td class="n">${num(b.bills)}</td><td class="n">${(b.margin * 100).toFixed(0)}%</td>` : ""}<td class="n ${Math.abs(b.cashGap) >= 120 ? "down" : ""}">${b.cashGap === 0 ? "—" : (b.cashGap < 0 ? "−" : "+") + inr(Math.abs(b.cashGap))}</td><td class="n">${b.lowStock}</td><td><span class="pill ${s}">${LABEL[s]}</span></td></tr>`; }).join("") || `<tr><td colspan="9" class="empty">No branch matches that search.</td></tr>`}</tbody></table></div>
+  <div class="pager"><button class="btn" id="prev" type="button"${st.page === 0 ? " disabled" : ""}>← Back</button><span>Page ${st.page + 1} of ${pages} · ${rows.length} branches</span><button class="btn" id="next" type="button"${st.page >= pages - 1 ? " disabled" : ""}>Next →</button></div>
+  <p class="note">Click a column heading to sort. "Please check" means a big cash difference or a sharp sales fall. It tells you where to look first, not why.</p>`;
+  box.querySelectorAll("[data-sort]").forEach((b) => b.addEventListener("click", () => { const k = b.dataset.sort; st.dir = st.sort === k ? -st.dir : (k === "name" ? 1 : -1); st.sort = k; st.page = 0; branchSection(); }));
+  $("q").addEventListener("input", (e) => { st.q = e.target.value; st.page = 0; const pos = e.target.selectionStart; branchSection(); const q = $("q"); q.focus(); q.setSelectionRange(pos, pos); });
+  $("reg").addEventListener("change", (e) => { st.region = e.target.value; st.page = 0; branchSection(); });
+  $("prev").addEventListener("click", () => { st.page--; branchSection(); });
+  $("next").addEventListener("click", () => { st.page++; branchSection(); });
+}
+
+/* =====================================================================================================
+   TAB: Sales history (day by day, week by week, month, year; this year against last year)
+   ===================================================================================================== */
+function periods(kind) {
+  const out = [], last = N - 1;
+  if (kind === "daily") for (let k = 29; k >= 0; k--) { const i = last - k, d = dateAt(i), f = festivalOn(i); out.push({ label: d.getDate() + "/" + (d.getMonth() + 1), tip: d.toDateString() + (f ? " (" + f.name + ")" : ""), v: H[i], ref: H[i - 364], hot: k === 0 }); }
+  if (kind === "weekly") for (let k = 25; k >= 0; k--) { const e = last - k * 7, s = e - 6; out.push({ label: shortDate(dateAt(s)), tip: "Week " + shortDate(dateAt(s)) + " to " + shortDate(dateAt(e)), v: sumRange(s, e), ref: sumRange(s - 364, e - 364), hot: k === 0 }); }
+  if (kind === "monthly") for (let k = 11; k >= 0; k--) { const m = new Date(TODAY.getFullYear(), TODAY.getMonth() - k, 1), nm = new Date(m.getFullYear(), m.getMonth() + 1, 1); const idx = (d) => N - 1 - Math.round((TODAY - d) / dayMs); const s = idx(m), e = Math.min(last, idx(nm) - 1); const rs = idx(new Date(m.getFullYear() - 1, m.getMonth(), 1)), re = rs + (e - s); out.push({ label: m.toLocaleDateString("en-IN", { month: "short" }) + (m.getMonth() === 0 ? " " + String(m.getFullYear()).slice(2) : ""), tip: m.toLocaleDateString("en-IN", { month: "long", year: "numeric" }) + (k === 0 ? " (so far)" : ""), v: sumRange(s, e), ref: s - 365 >= 0 ? sumRange(rs, re) : 0, hot: k === 0 }); }
+  if (kind === "yearly") for (let k = 2; k >= 0; k--) { const e = last - k * 365, s = e - 364; out.push({ label: k === 0 ? "Last 12 months" : k === 1 ? "12 months before" : "12 before that", tip: shortDate(dateAt(s)) + " " + dateAt(s).getFullYear() + " to " + shortDate(dateAt(e)) + " " + dateAt(e).getFullYear(), v: sumRange(s, e), ref: 0, hot: k === 0 }); }
+  return out;
+}
+function history() {
+  const last = N - 1, wk = sumRange(last - 6, last), wkp = sumRange(last - 13, last - 7);
+  const dow = new Date(TODAY).getDay(), mtdDays = TODAY.getDate();
+  const mtd = sumRange(last - mtdDays + 1, last);
+  const pmStart = last - mtdDays - new Date(TODAY.getFullYear(), TODAY.getMonth(), 0).getDate() + 1, pmDays = mtdDays;
+  const pmtd = sumRange(pmStart, pmStart + pmDays - 1);
+  const ytdDays = Math.round((TODAY - new Date(TODAY.getFullYear(), 0, 1)) / dayMs) + 1;
+  const ytd = sumRange(last - ytdDays + 1, last), pytd = sumRange(last - ytdDays + 1 - 365, last - 365);
+  const l12 = sumRange(last - 364, last), p12 = sumRange(last - 729, last - 365);
+  const dowAvg = [0, 1, 2, 3, 4, 5, 6].map((d) => mean(H.slice(N - 365).filter((_, i) => dateAt(N - 365 + i).getDay() === d)));
+  const names = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const bestD = dowAvg.indexOf(Math.max(...dowAvg)), worstD = dowAvg.indexOf(Math.min(...dowAvg));
+  const mAvg = Array.from({ length: 12 }, (_, m) => { const xs = []; for (let i = N - 365; i < N; i++) if (dateAt(i).getMonth() === m) xs.push(H[i]); return mean(xs); });
+  const bestM = mAvg.indexOf(Math.max(...mAvg)), worstM = mAvg.indexOf(Math.min(...mAvg));
+  const mn = (m) => new Date(2000, m, 1).toLocaleDateString("en-IN", { month: "long" });
+  let bi = N - 365; for (let i = N - 365; i < N; i++) if (H[i] > H[bi]) bi = i;
+  const bf = festivalOn(bi);
+  const per = periods(st.hperiod);
+  const titles = { daily: "Day by day, last 30 days", weekly: "Week by week, last 26 weeks", monthly: "Month by month, last 12 months", yearly: "Year by year, last 3 years" };
+  const growth = pct(l12, p12);
+  setTab(`<p class="say">In plain words: over the <b>last 12 months</b> you received <b>${inr(l12)}</b>, which is <b class="${cls(growth)}">${sgn(growth)}</b> compared with the 12 months before. <b>${names[bestD]}</b> is your strongest day of the week and <b>${names[worstD]}</b> the weakest. Your busiest month is usually <b>${mn(bestM)}</b>, and your quietest is <b>${mn(worstM)}</b>.</p>
+  <div class="tiles">
+    ${tile("This week vs last week", inr(wk), `<span class="${cls(pct(wk, wkp))}">${sgn(pct(wk, wkp))}</span>`, "Last 7 days against the 7 days before.")}
+    ${tile("This month so far vs last month", inr(mtd), `<span class="${cls(pct(mtd, pmtd))}">${sgn(pct(mtd, pmtd))}</span>`, "Same number of days compared.")}
+    ${tile("This year so far vs last year", inr(ytd), `<span class="${cls(pct(ytd, pytd))}">${sgn(pct(ytd, pytd))}</span>`, "From 1 January to today, against the same dates last year.")}
+    ${tile("Today vs same day last week", inr(H[last]), `<span class="${cls(pct(H[last], H[last - 7]))}">${sgn(pct(H[last], H[last - 7]))}</span>`, "Compares a " + names[dow] + " with a " + names[dow] + ".")}
+  </div>
+  <section class="box"><div class="tools"><h2 style="margin:0">${titles[st.hperiod]}</h2>
+    <span class="seg" role="group" aria-label="History period">${["daily", "weekly", "monthly", "yearly"].map((k) => `<button type="button" data-hp="${k}" aria-pressed="${st.hperiod === k}">${{ daily: "Daily", weekly: "Weekly", monthly: "Monthly", yearly: "Yearly" }[k]}</button>`).join("")}</span></div>
+    ${barChart(per, { aria: titles[st.hperiod] })}
+    <p class="legend"><span><i style="background:var(--bar)"></i>Money received</span><span><i style="background:var(--accent)"></i>Latest period</span>${st.hperiod !== "yearly" ? `<span><i style="background:var(--line)"></i>Same period a year earlier (dashed)</span>` : ""}</p>
+    <div class="tbl"><table><thead><tr><th>Period</th><th class="n">Money received</th>${st.hperiod !== "yearly" ? `<th class="n">A year earlier</th><th class="n">Change</th>` : `<th class="n">Change vs period before</th>`}</tr></thead><tbody>
+    ${[...per].reverse().slice(0, st.easy ? 6 : 12).map((p, ix, arr) => { const prev = st.hperiod === "yearly" ? arr[ix + 1] : null; const c = st.hperiod === "yearly" ? (prev ? pct(p.v, prev.v) : null) : (p.ref ? pct(p.v, p.ref) : null); return `<tr><td>${esc(p.tip)}</td><td class="n">${inr(p.v)}</td>${st.hperiod !== "yearly" ? `<td class="n">${p.ref ? inr(p.ref) : "—"}</td>` : ""}<td class="n ${c === null ? "flat" : cls(c)}">${c === null ? "—" : sgn(c)}</td></tr>`; }).join("")}</tbody></table></div></section>
+  <div class="cols2"><section class="box"><h2>Which day of the week sells most?</h2>${hbars(dowAvg.map((v, i) => ({ label: names[i], v, cls: i === bestD ? "hot" : i === worstD ? "cold" : "" })), (v) => inr(v))}<p class="note">Average of each weekday over the last 12 months.</p></section>
+  <section class="box"><h2>Your biggest day this year</h2><p><b>${dateAt(bi).toDateString()}</b>: ${inr(H[bi])}${bf ? ` (around <b>${bf.name}</b>)` : ""}.</p><p class="note">Festival dates are settings you can change, because they move every year. Sample dates used here: Diwali ${FESTIVALS[0].dates.join(", ")}.</p></section></div>`);
+  document.querySelectorAll("[data-hp]").forEach((b) => b.addEventListener("click", () => { st.hperiod = b.dataset.hp; history(); }));
+}
+
+/* =====================================================================================================
+   TAB: Brands and products (which brand is in demand, which is slow, and possible reasons)
+   ===================================================================================================== */
+function brandVerdict(p, peers) {
+  const share = (p.units / sum(peers, (x) => x.units) + p.rev / sum(peers, (x) => x.rev)) / 2, even = 1 / peers.length;
+  if (peers.length > 1 && share >= even * 1.3) return ["good", "Very high demand"];
+  if (peers.length > 1 && share <= even * 0.55) return ["check", "Slow seller"];
+  return ["watch", "Steady"];
+}
+function brandReasons(p, peers) {
+  const avgP = mean(peers.map((x) => x.price)), r = [];
+  const gap = pct(p.price, avgP);
+  if (peers.length > 1 && gap <= -5) r.push(`Priced ${Math.abs(gap).toFixed(0)}% below the average of its group, which may help sales.`);
+  if (peers.length > 1 && gap >= 5) r.push(`Priced ${gap.toFixed(0)}% above the average of its group, so fewer shoppers may choose it.`);
+  if (p.stockout >= 3) r.push(`Was out of stock on ${p.stockout} of the last 30 days. Some sales were probably lost, not refused.`);
+  if (p.offer >= 5) r.push(`Had an offer on ${p.offer} days. Offers lift sales for a while, so check the Offers tab before trusting the number.`);
+  if (p.g >= 8) r.push(`Sales are rising (${sgn(p.g, 0)} against the previous 30 days).`);
+  if (p.g <= -8) r.push(`Sales are falling (${sgn(p.g, 0)} against the previous 30 days).`);
+  if (p.margin >= 0.15) r.push(`Good earning per sale (${(p.margin * 100).toFixed(0)}% margin), so it is worth keeping in stock.`);
+  if (p.margin <= 0.07) r.push(`Thin margin (${(p.margin * 100).toFixed(0)}%). Selling more of it earns little.`);
+  return r.length ? r : ["No unusual price, stock or offer effect found in the sample records."];
+}
+function brands() {
+  const cats = ["All", ...new Set(B.map((p) => p.cat))];
+  const list = B.filter((p) => st.bcat === "All" || p.cat === st.bcat);
+  const key = { revenue: (p) => p.rev, units: (p) => p.units, growth: (p) => p.g, profit: (p) => p.profit }[st.bsort];
+  const sorted = [...list].sort((a, b) => key(b) - key(a));
+  const peersOf = (p) => B.filter((x) => x.cat === p.cat);
+  const top = [...B].filter((p) => brandVerdict(p, peersOf(p))[0] === "good").sort((a, b) => b.rev - a.rev).slice(0, 3);
+  const low = [...B].filter((p) => brandVerdict(p, peersOf(p))[0] === "check").sort((a, b) => a.rev - b.rev).slice(0, 3);
+  setTab(`<p class="say">Last 30 days. In demand: <b>${top.map((p) => esc(p.name)).join(", ") || "none stand out"}</b>. Selling slowly compared with others in the same group: <b>${low.map((p) => esc(p.name)).join(", ") || "none"}</b>. Brands are compared only with brands of the same kind, so a rice is never compared with an oil.</p>
+  <section class="box"><div class="tools"><div class="controls"><label>Group<select id="bcat">${cats.map((c) => `<option${c === st.bcat ? " selected" : ""}>${esc(c)}</option>`).join("")}</select></label>
+  <label>Rank by<select id="bsort">${[["revenue", "Money received"], ["units", "Units sold"], ["growth", "Growth"], ["profit", "Estimated profit"]].map(([k, l]) => `<option value="${k}"${k === st.bsort ? " selected" : ""}>${l}</option>`).join("")}</select></label></div></div>
+  <div class="tbl"><table><thead><tr><th>#</th><th>Product</th><th>Demand</th><th class="n">Units sold</th><th class="n">Money received</th><th class="n">Growth</th>${st.easy ? "" : `<th class="n">Margin</th><th class="n">Est. profit</th>`}</tr></thead><tbody>
+  ${sorted.map((p, i) => { const v = brandVerdict(p, peersOf(p)); return `<tr><td>${i + 1}</td><td>${esc(p.name)}</td><td><span class="pill ${v[0]}">${v[1]}</span></td><td class="n">${num(p.units)} ${esc(p.unit)}</td><td class="n">${inr(p.rev)}</td><td class="n ${cls(p.g)}">${sgn(p.g, 0)}</td>${st.easy ? "" : `<td class="n">${(p.margin * 100).toFixed(0)}%</td><td class="n">${inr(p.profit)}</td>`}</tr>`; }).join("")}</tbody></table></div>
+  <p class="note">"Very high demand" means a clearly bigger share of its group than an equal split, counting both units and money so premium items are not unfairly marked down. "Slow seller" means a much smaller share. These are signals from recorded sales, not judgements about quality.</p></section>
+  <section class="box"><h2>Why might they sell this way?</h2><div class="cols2">${[...top, ...low].map((p) => { const v = brandVerdict(p, peersOf(p)); return `<div><h3>${esc(p.name)} <span class="pill ${v[0]}">${v[1]}</span></h3><ul class="plain">${brandReasons(p, peersOf(p)).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div>`; }).join("")}</div>
+  <p class="note">These are possible reasons found in price, stock and offer records. They are leads to check, not proof of cause.</p></section>`);
+  $("bcat").addEventListener("change", (e) => { st.bcat = e.target.value; brands(); });
+  $("bsort").addEventListener("change", (e) => { st.bsort = e.target.value; brands(); });
+}
+
+/* =====================================================================================================
+   TAB: Regional source (e.g. rice bought from state 1 vs state 2) with fair-comparison logic
+   ===================================================================================================== */
+// share: share of the product's weekly units; stockout: days out of stock (last 28); offer: days on offer; front: front-shelf placement
+const SOURCES = [
+  { prod: "Sona Masoori rice (loose)", pid: 4, src: [
+    { st: "Andhra Pradesh", dist: "Guntur", share: .62, price: 56, cost: 49, stockout: 0, offer: 4, front: true, ret: .8, comp: 3, q: 4.4, age: 11, regions: [.5, .22, .28] },
+    { st: "Telangana", dist: "Nalgonda", share: .38, price: 59, cost: 51, stockout: 5, offer: 0, front: false, ret: 1.1, comp: 4, q: 4.3, age: 19, regions: [.34, .4, .26] } ] },
+  { prod: "Toor dal (loose)", pid: 7, src: [
+    { st: "Karnataka", dist: "Kalaburagi", share: .58, price: 154, cost: 129, stockout: 1, offer: 0, front: true, ret: .6, comp: 2, q: 4.5, age: 14, regions: [.3, .45, .25] },
+    { st: "Maharashtra", dist: "Latur", share: .42, price: 150, cost: 127, stockout: 1, offer: 0, front: true, ret: 2.1, comp: 7, q: 3.9, age: 16, regions: [.34, .33, .33] } ] },
+  { prod: "Basmati rice (loose)", pid: 5, src: [
+    { st: "Punjab", dist: "Amritsar", share: .55, price: 118, cost: 99, stockout: 0, offer: 0, front: true, ret: .5, comp: 1, q: 4.7, age: 20, regions: [.4, .35, .25] },
+    { st: "Haryana", dist: "Karnal", share: .45, price: 112, cost: 95, stockout: 2, offer: 0, front: true, ret: .7, comp: 2, q: 4.5, age: 18, regions: [.36, .34, .3] } ] },
+  { prod: "Chana dal (loose)", pid: 8, src: [
+    { st: "Madhya Pradesh", dist: "Vidisha", share: .52, price: 92, cost: 80, stockout: 2, offer: 6, front: true, ret: 1.2, comp: 3, q: 4.1, age: 12, regions: [.33, .34, .33] },
+    { st: "Rajasthan", dist: "Bikaner", share: .48, price: 92, cost: 79, stockout: 2, offer: 6, front: true, ret: 1.3, comp: 3, q: 4.1, age: 13, regions: [.33, .33, .34] } ] },
+];
+function sourceVerdict(a, b) { // a = source that sold more units
+  const ratio = a.units / b.units;
+  const conf = [], qual = [];
+  if (pct(a.price, b.price) <= -4) conf.push(`cheaper by ${Math.abs(pct(a.price, b.price)).toFixed(0)}%`);
+  if (b.stockout - a.stockout >= 3) conf.push(`the other was out of stock ${b.stockout - a.stockout} more days`);
+  if (a.offer - b.offer >= 5) conf.push(`on offer ${a.offer - b.offer} more days`);
+  if (a.front && !b.front) conf.push("kept on the front shelf");
+  if (a.q - b.q >= 0.3) qual.push(`better quality check score (${a.q} vs ${b.q})`);
+  if (b.ret - a.ret >= 0.5) qual.push(`fewer returns (${a.ret}% vs ${b.ret}%)`);
+  if (b.comp - a.comp >= 2) qual.push(`fewer customer complaints (${a.comp} vs ${b.comp})`);
+  let v;
+  if (ratio < 1.15) v = ["watch", "No clear difference", "Both sources sell at a similar pace. Keep buying from both and keep recording."];
+  else if (qual.length >= 2 && conf.length <= 1) v = ["good", "Customers seem to prefer it", "It sells more AND has better quality signals, and price, stock or shelf do not explain the gap. This is fairly strong evidence."];
+  else if (conf.length >= 2 && qual.length <= 1) v = ["check", "Sold more mostly for other reasons", "The gap is largely explained by price, availability, offers or shelf position. This is NOT proof that it is better quality."];
+  else v = ["watch", "Mixed evidence", "Some signals point each way. Run a fair test below before changing your supplier."];
+  return { ratio, conf, qual, v };
+}
+function regions() {
+  const prod = SOURCES[st.rprod], base = B[prod.pid], weekly = base.units / 30 * 7;
+  const src = prod.src.map((s) => ({ ...s, units: weekly * s.share, margin: (s.price - s.cost) / s.price }));
+  const [a, b] = src[0].units >= src[1].units ? [src[0], src[1]] : [src[1], src[0]];
+  const V = sourceVerdict(a, b), regs = data.S.regions.slice(0, 3);
+  const regionRows = (s) => hbars(regs.map((r, i) => ({ label: r, v: s.units * s.regions[i] })), (v) => num(v) + " " + base.unit);
+  setTab(`<section class="box"><div class="tools"><div class="controls"><label>Product<select id="rprod">${SOURCES.map((s, i) => `<option value="${i}"${i === st.rprod ? " selected" : ""}>${esc(s.prod)}</option>`).join("")}</select></label></div></div>
+  <p class="say">${esc(prod.prod)} comes from <b>${esc(a.st)} (${esc(a.dist)})</b> and <b>${esc(b.st)} (${esc(b.dist)})</b>. <b>${esc(a.st)}</b> sells <b>${((V.ratio - 1) * 100).toFixed(0)}% more</b> per week. Verdict: <span class="pill ${V.v[0]}">${V.v[1]}</span></p>
+  <div class="tbl"><table><thead><tr><th>Compare</th><th class="n">${esc(a.st)}</th><th class="n">${esc(b.st)}</th></tr></thead><tbody>
+  ${[["Sold per week", (s) => num(s.units) + " " + base.unit], ["Selling price", (s) => inr(s.price) + " / " + base.unit], ["Earning per sale", (s) => (s.margin * 100).toFixed(0) + "%"], ["Days out of stock (last 28)", (s) => s.stockout], ["Days on offer", (s) => s.offer], ["On front shelf", (s) => s.front ? "Yes" : "No"], ["Customer returns", (s) => s.ret + "%"], ["Complaints", (s) => s.comp], ["Quality check score (1 to 5)", (s) => s.q], ["Age of current batch (days)", (s) => s.age]].map(([l, f]) => `<tr><td>${l}</td><td class="n">${f(a)}</td><td class="n">${f(b)}</td></tr>`).join("")}</tbody></table></div></section>
+  <div class="cols2"><section class="box"><h2>Why does one sell more?</h2><h3>Other things that can make a product sell more</h3><ul class="plain">${V.conf.length ? V.conf.map((x) => `<li>${esc(a.st)} was ${esc(x)}.</li>`).join("") : "<li>None found: price, stock, offers and shelf were similar.</li>"}</ul>
+  <h3 style="margin-top:12px">Signals that customers like it better</h3><ul class="plain">${V.qual.length ? V.qual.map((x) => `<li>${esc(a.st)} has ${esc(x)}.</li>`).join("") : "<li>None found: quality score, returns and complaints are similar.</li>"}</ul>
+  <p class="say" style="margin-top:12px">${esc(V.v[2])}</p>
+  <p class="note"><b>Fair test:</b> for 2 weeks sell both at the same price, the same shelf and the same stock. If ${esc(a.st)} still sells more, you can trust the difference.</p></section>
+  <section class="box"><h2>Where is it sold most?</h2><h3>${esc(a.st)} rice by branch region</h3>${regionRows(a)}<h3 style="margin-top:12px">${esc(b.st)} by branch region</h3>${regionRows(b)}
+  <p class="note">Units per week by the region of the branch that sold them. A source can be strong in one region and weak in another.</p></section></div>`);
+  $("rprod").addEventListener("change", (e) => { st.rprod = +e.target.value; regions(); });
+}
+
+/* =====================================================================================================
+   TAB: Offers and festivals (what worked last Diwali, which offer sold fast, what to repeat)
+   ===================================================================================================== */
+// pid: product; type; fest; start offset in days before festival; len; lift = units/day multiplier vs normal; disc = rupees discount per unit sold (or free-unit cost)
+const OFFERS = [
+  { id: "D25-1", name: "Diwali 2025 · Horlicks buy 1 get 1 free", fest: "Diwali", year: 2025, type: "Buy 1 get 1 free", pid: 0, len: 7, lift: 2.6, free: true, fast: 62 },
+  { id: "D25-2", name: "Diwali 2025 · Oil 10% off", fest: "Diwali", year: 2025, type: "10% off", pid: 10, len: 10, lift: 1.5, pct: 10, fast: 28 },
+  { id: "D25-3", name: "Diwali 2025 · Sona Masoori rice ₹2 off per kg", fest: "Diwali", year: 2025, type: "₹2 off", pid: 4, len: 8, lift: 1.9, flat: 2, fast: 41 },
+  { id: "D25-4", name: "Diwali 2025 · Tea ₹5 off", fest: "Diwali", year: 2025, type: "₹5 off", pid: 14, len: 7, lift: 1.25, flat: 5, fast: 18 },
+  { id: "D24-1", name: "Diwali 2024 · Good Day biscuits ₹2 off", fest: "Diwali", year: 2024, type: "₹2 off", pid: 17, len: 6, lift: 1.9, flat: 2, fast: 55 },
+  { id: "D24-2", name: "Diwali 2024 · Boost 5% off", fest: "Diwali", year: 2024, type: "5% off", pid: 1, len: 7, lift: 1.9, pct: 5, fast: 35 },
+  { id: "S26-1", name: "Sankranti 2026 · Rice 8% off", fest: "Sankranti", year: 2026, type: "8% off", pid: 4, len: 6, lift: 1.55, pct: 8, fast: 33 },
+  { id: "U26-1", name: "Ugadi 2026 · Chana dal ₹2 off", fest: "Ugadi", year: 2026, type: "₹2 off", pid: 8, len: 5, lift: 1.4, flat: 2, fast: 25 },
+];
+function evalOffer(o) {
+  const p = B[o.pid], base = p.units / 30; // normal units per day for this product
+  const days = o.len, normalUnits = base * days, offerUnits = base * o.lift * days;
+  let discountCost = 0;
+  if (o.free) discountCost = offerUnits / 2 * p.cost;                 // half the units given free: cost of goods given away
+  else if (o.free3) discountCost = offerUnits / 3 * p.cost;           // one in three free
+  else if (o.pct) discountCost = offerUnits * p.price * o.pct / 100;
+  else discountCost = offerUnits * (o.flat || 0);
+  const revenue = (o.free || o.free3) ? offerUnits * p.price * (o.free ? .5 : 2 / 3) : offerUnits * p.price - discountCost;
+  const normalProfit = normalUnits * (p.price - p.cost);
+  const offerProfit = (o.free || o.free3) ? offerUnits * ((o.free ? .5 : 2 / 3) * p.price) - offerUnits * p.cost : revenue - offerUnits * p.cost;
+  return { o, p, extraUnits: offerUnits - normalUnits, extraRevenue: revenue - normalUnits * p.price, discountCost, profitChange: offerProfit - normalProfit, fast: o.fast, offerUnits };
+}
+function offers() {
+  const E = OFFERS.map(evalOffer);
+  const festList = ["all", "Diwali", "Sankranti", "Ugadi"];
+  const shown = E.filter((e) => st.ostrat === "all" || e.o.fest === st.ostrat).sort((a, b) => b.profitChange - a.profitChange);
+  const dv = daysTo("Diwali"), dwi = E.filter((e) => e.o.fest === "Diwali");
+  const best = [...dwi].sort((a, b) => b.profitChange - a.profitChange);
+  const winners = best.filter((e) => e.profitChange > 0), loser = best.filter((e) => e.profitChange <= 0 && e.fast >= 40)[0];
+  const fastest = [...dwi].sort((a, b) => b.fast - a.fast)[0];
+  const lines = [];
+  winners.slice(0, 2).forEach((e) => lines.push(`<b>Repeat:</b> ${esc(e.o.type)} on ${esc(e.p.name)}. Last time it added about ${inr(e.profitChange)} profit over normal sales and sold ${e.fast}% of its stock in the first 2 days.`));
+  if (loser) lines.push(`<b>Change or skip:</b> ${esc(loser.o.name)}. It sold fast (${loser.fast}% in 2 days) but the free goods cost more than the extra sales earned, so profit fell by about ${inr(-loser.profitChange)}. Try a smaller discount.`);
+  const stockHint = winners[0] ? `Plan stock for about ${(winners[0].o.lift).toFixed(1)} times normal daily sales of ${esc(winners[0].p.name)} during the offer.` : "";
+  setTab(`<p class="say">${dv !== null && dv >= 0 ? `Diwali is in <b>${dv} day${dv === 1 ? "" : "s"}</b>. ` : ""}Quick answer from your last ${dwi.length} Diwali offers: the offer that earned the most extra profit was <b>${esc(best[0].o.name)}</b> (${inr(best[0].profitChange)}). The one that sold fastest was <b>${esc(fastest.o.name)}</b> (${fastest.fast}% of its stock gone in 2 days).</p>
+  <section class="box"><h2>Ideas for the coming festival</h2><ul class="plain">${lines.map((l) => `<li>${l}</li>`).join("")}${stockHint ? `<li>${stockHint}</li>` : ""}</ul>
+  <p class="note">The assistant uses only your recorded offers. With just ${dwi.length} Diwali offers on record this is a starting point, not a certainty. Festival dates and demand change every year, and it cannot know which customers saw the offer, so it does not claim a "conversion rate".</p></section>
+  <section class="box"><div class="tools"><h2 style="margin:0">What happened in past offers</h2><span class="seg" role="group" aria-label="Festival">${festList.map((f) => `<button type="button" data-of="${f}" aria-pressed="${st.ostrat === f}">${f === "all" ? "All festivals" : f}</button>`).join("")}</span></div>
+  <div class="tbl"><table><thead><tr><th>Offer</th><th>Verdict</th><th class="n">Extra units sold</th>${st.easy ? "" : `<th class="n">Extra money received</th><th class="n">Discount cost</th>`}<th class="n">Profit change</th><th class="n">Sold in first 2 days</th></tr></thead><tbody>
+  ${shown.map((e) => { const v = e.profitChange > 0 ? (e.fast >= 40 ? ["good", "Fast and profitable"] : ["good", "Profitable"]) : (e.fast >= 40 ? ["check", "Fast but lost money"] : ["watch", "Lost money"]); return `<tr><td class="wrap">${esc(e.o.name)}</td><td><span class="pill ${v[0]}">${v[1]}</span></td><td class="n">${num(e.extraUnits)}</td>${st.easy ? "" : `<td class="n">${inr(e.extraRevenue)}</td><td class="n">${inr(e.discountCost)}</td>`}<td class="n ${cls(e.profitChange)}">${e.profitChange >= 0 ? "+" : "−"}${inr(Math.abs(e.profitChange))}</td><td class="n">${e.fast}%</td>`; }).join("")}</tbody></table></div>
+  <p class="note">"Profit change" = profit during the offer minus the profit you would normally make on the same product over the same days, after counting the discount or free goods. "Quick" is how much of the offer stock was sold in the first 2 days.</p></section>`);
+  document.querySelectorAll("[data-of]").forEach((b) => b.addEventListener("click", () => { st.ostrat = b.dataset.of; offers(); }));
+}
+
+/* =====================================================================================================
+   TAB: Stock and reorder (what to order, how much, with an optional festival uplift)
+   ===================================================================================================== */
+function liftTable() { // average Diwali demand multiplier learned from the previous Diwalis in the history
+  const wd = weekdayIndex(), N2 = (i) => H[i] / wd[dateAt(i).getDay()];
+  const idxOf = (k) => N - 1 - Math.round((TODAY - new Date(k + "T00:00:00")) / dayMs);
+  const prev = FESTIVALS[0].dates.map(idxOf).filter((i) => i - 42 >= 0 && i + 3 < N - 1 && i < N - 14);
+  const lift = (o) => mean(prev.map((f) => { const i = f + o; return N2(i) / mean(Array.from({ length: 28 }, (_, k) => N2(i - 42 + k))); }));
+  return { lift, prevCount: prev.length };
+}
+function weekdayIndex() { const xs = Array.from({ length: 7 }, () => []); for (let i = N - 120; i < N - 30; i++) xs[dateAt(i).getDay()].push(H[i]); const m = xs.map(mean), all = mean(m); return m.map((v) => v / all); }
+function stock() {
+  const L = liftTable(), upl = st.uplift && daysTo("Diwali") !== null && daysTo("Diwali") <= 21 ? mean([-6, -5, -4, -3, -2, -1, 0].map((o) => L.lift(o))) : 1;
+  const rnd = rng(77 + data.S.count);
+  const rows = B.map((p) => { const daily = p.units / 30, eff = daily * upl, lead = 3 + Math.floor(rnd() * 4);
+    const onHand = p.id === 0 ? 1 : Math.max(0, Math.round(daily * (rnd() * 14 - 1)));
+    const left = eff > 0 ? onHand / eff : 99, need = Math.max(0, Math.ceil(eff * (lead + st.cover) - onHand));
+    const status = onHand === 0 ? ["check", "Out of stock"] : left < lead ? ["check", "Order now"] : left < lead + 3 ? ["watch", "Order soon"] : left > 60 ? ["watch", "Too much stock"] : ["good", "Enough"];
+    return { p, daily: eff, onHand, lead, left, need, status }; }).sort((a, b) => a.left - b.left);
+  const urgent = rows.filter((r) => r.status[0] === "check").length;
+  setTab(`<p class="say">${urgent} product${urgent === 1 ? "" : "s"} should be ordered now. Quantities are worked out as: expected daily sales × (delivery days + days you want to cover) − stock on hand.${upl > 1.02 ? ` The festival uplift is on (<b>${upl.toFixed(2)}×</b> normal sales), learned from your previous Diwalis.` : ""}</p>
+  <section class="box"><div class="tools"><div class="controls"><label>Days of stock to cover<select id="cover">${[3, 7, 10, 14].map((d) => `<option value="${d}"${d === st.cover ? " selected" : ""}>${d} days</option>`).join("")}</select></label>
+  <label>Festival uplift<span class="seg" role="group" aria-label="Festival uplift"><button type="button" data-up="1" aria-pressed="${st.uplift}">On</button><button type="button" data-up="0" aria-pressed="${!st.uplift}">Off</button></span></label></div></div>
+  <div class="tbl"><table><thead><tr><th>Product</th><th>Status</th><th class="n">In stock</th><th class="n">Sells per day</th><th class="n">Days left</th>${st.easy ? "" : `<th class="n">Delivery takes</th>`}<th class="n">Order this much</th></tr></thead><tbody>
+  ${rows.map((r) => `<tr><td>${esc(r.p.name)}</td><td><span class="pill ${r.status[0]}">${r.status[1]}</span></td><td class="n">${num(r.onHand)} ${esc(r.p.unit)}</td><td class="n">${r.daily < 10 ? r.daily.toFixed(1) : num(r.daily)}</td><td class="n">${r.left > 90 ? "90+" : r.left.toFixed(1)}</td>${st.easy ? "" : `<td class="n">${r.lead} days</td>`}<td class="n"><b>${r.need ? num(r.need) + " " + esc(r.p.unit) : "—"}</b></td></tr>`).join("")}</tbody></table></div>
+  <p class="note">Stock on hand in this preview is sample data. In the real app it is calculated from every bill, delivery, return and adjustment, and confirmed by physical stock counts. The system never claims to know what is on the shelf without those records.</p></section>`);
+  $("cover").addEventListener("change", (e) => { st.cover = +e.target.value; stock(); });
+  document.querySelectorAll("[data-up]").forEach((b) => b.addEventListener("click", () => { st.uplift = b.dataset.up === "1"; stock(); }));
+}
+
+/* =====================================================================================================
+   TAB: Suppliers and deliveries
+   ===================================================================================================== */
+const SUPPLIERS = [
+  { n: "Sri Venkateswara Traders", prod: "Rice, pulses", orders: 22, onTime: 96, short: 3, shortVal: 4200, ret: 0.6, owed: 182000 },
+  { n: "Annapurna Agro Foods", prod: "Rice (Telangana)", orders: 18, onTime: 78, short: 17, shortVal: 38500, ret: 1.4, owed: 96000 },
+  { n: "Kaveri Distributors", prod: "Health drinks, tea", orders: 26, onTime: 92, short: 8, shortVal: 15800, ret: 0.4, owed: 241000 },
+  { n: "Deccan Oils", prod: "Cooking oil", orders: 14, onTime: 85, short: 6, shortVal: 9100, ret: 0.9, owed: 64000 },
+  { n: "Latur Pulses Mart", prod: "Toor dal", orders: 12, onTime: 71, short: 22, shortVal: 41200, ret: 2.4, owed: 58000 },
+  { n: "Metro Biscuits & Snacks", prod: "Biscuits", orders: 20, onTime: 97, short: 2, shortVal: 1200, ret: 0.2, owed: 37000 },
+];
+function suppliers() {
+  const k = Math.max(1, data.S.count / 12), rows = SUPPLIERS.map((s) => ({ ...s, orders: Math.round(s.orders * k), shortVal: s.shortVal * k, owed: s.owed * k, status: s.short >= 15 || s.onTime < 75 ? ["check", "Please review"] : s.short >= 6 || s.onTime < 90 ? ["watch", "Keep an eye"] : ["good", "Reliable"] })).sort((a, b) => b.short - a.short);
+  const w = rows[0];
+  setTab(`<p class="say">Last 90 days. The most short deliveries came from <b>${esc(w.n)}</b>: ${w.short}% of items were short, worth about <b>${inr(w.shortVal)}</b>. A short delivery is a reason to check the slip and talk to the supplier. It is not proof of anything dishonest.</p>
+  <section class="box"><div class="tbl"><table><thead><tr><th>Supplier</th>${st.easy ? "" : "<th>Supplies</th>"}<th>Verdict</th><th class="n">Orders</th><th class="n">On time</th><th class="n">Items short</th><th class="n">Value short</th>${st.easy ? "" : `<th class="n">Returned for quality</th>`}<th class="n">You owe</th><th>Deals</th></tr></thead><tbody>
+  ${rows.map((s) => `<tr><td>${esc(s.n)}</td>${st.easy ? "" : `<td>${esc(s.prod)}</td>`}<td><span class="pill ${s.status[0]}">${s.status[1]}</span></td><td class="n">${s.orders}</td><td class="n ${s.onTime < 80 ? "down" : ""}">${s.onTime}%</td><td class="n ${s.short >= 15 ? "down" : ""}">${s.short}%</td><td class="n">${inr(s.shortVal)}</td>${st.easy ? "" : `<td class="n">${s.ret}%</td>`}<td class="n">${inr(s.owed)}</td><td><button type="button" class="btn" data-rv="${esc(s.n)}">Review</button></td></tr>`).join("")}</tbody></table></div></section>
+  <section class="box"><h2>How a delivery is checked</h2><ul class="plain"><li>You ordered <b>100 packets at ₹100</b>. The truck brought <b>90</b>. The system records the difference: <b>10 packets, about ₹1,000</b>.</li><li>One person counts, a second person confirms. Cartons are converted to packets (1 carton = 20 packets) so nobody scans every packet.</li><li>The difference becomes a case with status New, Under Review, Explained or Closed, with the evidence attached. Nobody is blamed automatically.</li></ul></section>`);
+}
+
+/* =====================================================================================================
+   TAB: Forecast (honest statistics: weekday pattern x recent level x festival effect, with a back-test)
+   ===================================================================================================== */
+function forecastDay(t, offsetDays, L, wd, level) { // t = history index of "now"; offsetDays into the future
+  const dt = new Date(TODAY.getTime() + offsetDays * dayMs); let lift = 1;
+  const nextD = FESTIVALS[0].dates.map((d) => new Date(d + "T00:00:00")).find((d) => d >= new Date(TODAY.getTime() + offsetDays * dayMs - 3 * dayMs));
+  if (nextD) { const o = Math.round((dt - nextD) / dayMs); if (o >= -10 && o <= 3 && L.prevCount > 0) lift = L.lift(o); }
+  return level * wd[dt.getDay()] * lift * Math.pow(1.16, offsetDays / 365);
+}
+function forecast() {
+  const wd = weekdayIndex(), L = liftTable();
+  const N2 = (i) => H[i] / wd[dateAt(i).getDay()];
+  const level = mean(Array.from({ length: 28 }, (_, k) => N2(N - 42 + k)));
+  const fc = Array.from({ length: 14 }, (_, k) => forecastDay(N - 1, k + 1, L, wd, level));
+  // back-test: predict the last 14 days from information available 14 days earlier (no festival lift: none fell there)
+  const lvl0 = mean(Array.from({ length: 28 }, (_, k) => N2(N - 14 - 42 + k)));
+  const errs = Array.from({ length: 14 }, (_, k) => { const i = N - 14 + k, f = lvl0 * wd[dateAt(i).getDay()] * Math.pow(1.16, (k + 14) / 365); return Math.abs(H[i] - f) / H[i]; });
+  const mape = mean(errs) * 100, band = Math.max(mape * 1.5, 5) / 100;
+  const items = fc.map((v, k) => { const d = new Date(TODAY.getTime() + (k + 1) * dayMs); return { label: d.getDate() + "/" + (d.getMonth() + 1), v, tip: d.toDateString() + ` (likely ${inr(v * (1 - band))} to ${inr(v * (1 + band))})`, hot: false }; });
+  const tot = sum(fc), lastWk = sumRange(N - 14, N - 1);
+  const dv = daysTo("Diwali");
+  setTab(`<p class="say">Next 14 days: about <b>${inr(tot)}</b> expected (likely between <b>${inr(tot * (1 - band))}</b> and <b>${inr(tot * (1 + band))}</b>), compared with ${inr(lastWk)} in the last 14 days (<b class="${cls(pct(tot, lastWk))}">${sgn(pct(tot, lastWk))}</b>).${dv !== null && dv >= 1 && dv <= 14 ? ` The rise comes from <b>Diwali in ${dv} days</b>, based on how sales behaved around your previous Diwalis.` : ""}</p>
+  <div class="tiles">${tile("How sure is this?", mape < 8 ? "Fairly reliable" : "Rough guide", `<span class="flat">average miss ${mape.toFixed(1)}% in a back-test</span>`, "The same method predicted the last 14 days, and this is how far off it was (MAPE).")}${tile("History available", "3 years", `<span class="up">enough data</span>`, "At least 2 years are needed to learn festival effects; fewer than 8 weeks means no forecast is shown.")}${tile("Festival effect learned from", L.prevCount + " past Diwali" + (L.prevCount === 1 ? "" : "s"), "", "More past years make the festival estimate steadier.")}</div>
+  <section class="box"><h2>Expected money received, next 14 days</h2>${barChart(items, { aria: "Forecast of money received for the next 14 days" })}<p class="legend"><span><i style="background:var(--bar)"></i>Expected</span><span>Hover a bar for the likely range</span></p></section>
+  <section class="box"><h2>How this forecast is made</h2><ul class="plain"><li>Start from the recent normal level of sales (4 weeks, a month back, so a festival ramp does not distort it).</li><li>Apply your weekday pattern (for example Saturdays are stronger).</li><li>Add the festival effect measured from your own earlier festivals, only for days close to a festival.</li><li>Show a range based on how wrong the method was in the back-test. If history is too short the page shows "not enough data" instead of a number.</li></ul>
+  <p class="note">It does not know about rain, strikes, new competitors or price changes. Use it as a planning guide, and compare it with what actually happens each week.</p></section>`);
+}
+
+/* =====================================================================================================
+   TAB: Ask the assistant (answers only from the sample data, always says how it worked it out)
+   ===================================================================================================== */
+const QUESTIONS = ["What are today's total sales?", "Which brand is in most demand?", "Which brand sells least?", "Which rice source sells more, and why?", "Which Diwali offer worked best?", "Which products should I reorder?", "Which supplier has the most short deliveries?", "Compare this month with last month", "What will sales be in the next 14 days?"];
+function answer(q) {
+  const s = q.toLowerCase();
+  const wk = (re) => re.test(s);
+  if (wk(/today|total sales|how much money/)) return [`Today's sales are <b>${inr(T.today)}</b> from <b>${num(T.bills)}</b> bills (${sgn(pct(T.today, T.yest))} vs yesterday).`, "Added up every bill made today across all branches."];
+  if (wk(/least|lowest|slow|worst|weak/) && wk(/brand|product|sell/)) { const x = [...B].filter((p) => brandVerdict(p, B.filter((y) => y.cat === p.cat))[0] === "check").sort((a, b) => a.rev - b.rev)[0]; return x ? [`<b>${esc(x.name)}</b> is the slowest compared with others in its group: ${num(x.units)} ${esc(x.unit)} in 30 days, ${sgn(x.g, 0)} vs the month before. Possible reasons: ${esc(brandReasons(x, B.filter((y) => y.cat === x.cat))[0])}`, "Compared each product's unit share with an equal split inside its own group over the last 30 days."] : ["No product is clearly slow in the sample records.", "Checked unit share inside each group."]; }
+  if (wk(/most|best|top|demand|popular/) && wk(/brand|product|sell|demand/) && !wk(/offer|rice|source/)) { const x = [...B].sort((a, b) => b.rev - a.rev).slice(0, 3); return [`Top sellers by money received: ${x.map((p) => `<b>${esc(p.name)}</b> (${inr(p.rev)})`).join(", ")}.`, "Ranked all products by money received over the last 30 days."]; }
+  if (wk(/rice|source|region|state|toor|dal/)) { const sc = SOURCES[wk(/toor|dal/) ? 1 : 0], base = B[sc.pid], src = sc.src.map((x) => ({ ...x, units: base.units / 30 * 7 * x.share })), [a, b] = src[0].units >= src[1].units ? [src[0], src[1]] : [src[1], src[0]], V = sourceVerdict(a, b); return [`For ${esc(sc.prod)}, <b>${esc(a.st)}</b> sells ${((V.ratio - 1) * 100).toFixed(0)}% more than ${esc(b.st)}. Verdict: <b>${V.v[1]}</b>. ${esc(V.v[2])}`, "Compared weekly units, then checked price, stock-outs, offers, shelf, quality score, returns and complaints. Open the Regional source tab for the full table."]; }
+  if (wk(/offer|diwali|festival|discount/)) { const E = OFFERS.filter((o) => o.fest === "Diwali").map(evalOffer).sort((a, b) => b.profitChange - a.profitChange); return [`The best Diwali offer on record is <b>${esc(E[0].o.name)}</b>: about ${inr(E[0].profitChange)} extra profit, ${E[0].fast}% of stock sold in 2 days. The worst for profit was <b>${esc(E[E.length - 1].o.name)}</b> (${E[E.length - 1].profitChange >= 0 ? "+" : "−"}${inr(Math.abs(E[E.length - 1].profitChange))}).`, "Profit with offer minus normal profit on the same days, after discount or free goods."]; }
+  if (wk(/reorder|order|stock|low/)) { const rnd = rng(77 + data.S.count); const rows = B.map((p) => { const daily = p.units / 30, lead = 3 + Math.floor(rnd() * 4); const onHand = p.id === 0 ? 1 : Math.max(0, Math.round(daily * (rnd() * 14 - 1))); return { p, left: daily > 0 ? onHand / daily : 99, lead, onHand }; }).filter((r) => r.left < r.lead).slice(0, 4); return [rows.length ? `Order now: ${rows.map((r) => `<b>${esc(r.p.name)}</b> (${num(r.onHand)} left)`).join(", ")}. Open the Stock tab for quantities.` : "Nothing needs ordering right now.", "Days of stock left compared with delivery time, using the last 30 days of sales."]; }
+  if (wk(/supplier|delivery|short/)) { const x = [...SUPPLIERS].sort((a, b) => b.short - a.short)[0]; return [`<b>${esc(x.n)}</b> has the most short deliveries: ${x.short}% of items short in 90 days (about ${inr(x.shortVal)}). This is a reason to check delivery slips, not proof of wrongdoing.`, "Compared ordered and received quantities on every order in the last 90 days."]; }
+  if (wk(/month|compare|last year|growth|grow/)) { const last = N - 1, d = TODAY.getDate(), mtd = sumRange(last - d + 1, last), ps = last - d - new Date(TODAY.getFullYear(), TODAY.getMonth(), 0).getDate() + 1, pm = sumRange(ps, ps + d - 1), l12 = sumRange(last - 364, last), p12 = sumRange(last - 729, last - 365); return [`This month so far: <b>${inr(mtd)}</b> (${sgn(pct(mtd, pm))} vs the same days last month). Last 12 months: <b>${inr(l12)}</b> (${sgn(pct(l12, p12))} vs the 12 months before).`, "Added daily sales for equal-length periods. Open the History tab for charts."]; }
+  if (wk(/forecast|predict|next|will|expect/)) { const wd = weekdayIndex(), L = liftTable(), N2 = (i) => H[i] / wd[dateAt(i).getDay()], level = mean(Array.from({ length: 28 }, (_, k) => N2(N - 42 + k))); const tot = sum(Array.from({ length: 14 }, (_, k) => forecastDay(N - 1, k + 1, L, wd, level))); return [`About <b>${inr(tot)}</b> over the next 14 days. It is a guide with a margin of error. See the Forecast tab for the range and the back-test.`, "Weekday pattern × recent level × festival effect learned from past years."]; }
+  return ["I can't answer that from the data in this preview. Try one of the suggested questions. In the real app, if the information is missing I will say exactly what is missing instead of guessing.", "No matching calculation found."];
+}
+function assistant() {
+  setTab(`<section class="box chat"><h2>Ask in plain words</h2><p class="note">The assistant only reads the (sample) records and runs fixed calculations. It never invents numbers and explains how it got each answer. The real app also understands Telugu, Hindi and the other 12 supported languages.</p>
+  <div class="chips">${QUESTIONS.map((q, i) => `<button type="button" data-q="${i}">${esc(q)}</button>`).join("")}</div>
+  <form class="askrow" id="ask"><label for="qi" style="position:absolute;left:-999px">Your question</label><input id="qi" placeholder="Type a question, for example: which brand is in demand?" autocomplete="off"><button class="btn go" type="submit">Ask</button></form>
+  <div id="log" class="chat">${st.chat.map((m) => `<div class="msg q">${esc(m.q)}</div><div class="msg a">${m.a[0]}<div class="how"><b>How I worked this out:</b> ${esc(m.a[1])}</div></div>`).join("")}</div></section>`);
+  const ask = (q) => { if (!q.trim()) return; st.chat.push({ q, a: answer(q) }); assistant(); const i = $("qi"); if (i) i.focus(); };
+  document.querySelectorAll("[data-q]").forEach((b) => b.addEventListener("click", () => ask(QUESTIONS[+b.dataset.q])));
+  $("ask").addEventListener("submit", (e) => { e.preventDefault(); ask($("qi").value); });
+}
+
+/* =====================================================================================================
+   Shell: tabs, size / style switches, hash routing
+   ===================================================================================================== */
+const TABS = [["overview", "Today", overview], ["history", "Sales history", history], ["brands", "Brands & products", brands], ["regions", "Regional source", regions], ["offers", "Offers & festivals", offers], ["stock", "Stock & reorder", stock], ["suppliers", "Suppliers", suppliers], ["forecast", "Forecast", forecast], ["assistant", "Ask the assistant", assistant]];
+function prepare() { data = build(st.size); T = totals(); H = buildHistory(); B = buildBrands(); }
+function render() {
+  document.body.classList.toggle("easy", st.easy);
+  $("v-easy").setAttribute("aria-pressed", st.easy); $("v-full").setAttribute("aria-pressed", !st.easy);
+  $("subtitle").textContent = `${data.S.name} · ${data.S.count} ${data.S.count === 1 ? "shop" : "branches"} · ${new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}`;
+  $("tabs").innerHTML = TABS.map(([k, l]) => `<button type="button" role="tab" data-tab="${k}" aria-selected="${k === st.tab}">${l}</button>`).join("");
+  document.querySelectorAll("[data-tab]").forEach((b) => b.addEventListener("click", () => { st.tab = b.dataset.tab; try { location.hash = st.tab; } catch (e) {} render(); }));
+  (TABS.find((t) => t[0] === st.tab) || TABS[0])[2]();
+}
+$("size").addEventListener("change", (e) => { st.size = e.target.value; st.region = "All"; st.q = ""; st.page = 0; prepare(); render(); });
+$("v-easy").addEventListener("click", () => { st.easy = true; st.page = 0; render(); });
+$("v-full").addEventListener("click", () => { st.easy = false; st.page = 0; render(); });
+try { const h = (location.hash || "").slice(1); if (TABS.some((t) => t[0] === h)) st.tab = h; } catch (e) {}
+window.addEventListener("hashchange", () => { try { const h = location.hash.slice(1); if (TABS.some((t) => t[0] === h) && h !== st.tab) { st.tab = h; render(); } } catch (e) {} });
+prepare(); render();
+</script>
+<script>
+(function(){
+const R=(s)=>rng(s*131+data.S.count), M=()=>sumRange(N-30,N-1), gm=()=>T.profit/T.today;
+const tbl=(h,rows)=>`<div class="tbl"><table><thead><tr>${h.map(x=>`<th${x[1]?' class="n"':''}>${x[0]}</th>`).join("")}</tr></thead><tbody>${rows.join("")}</tbody></table></div>`;
+const wa=(t)=>"https://wa.me/?text="+encodeURIComponent(t);
+const P=(c,t)=>`<span class="pill ${c}">${t}</span>`;
+let K=1; const wrap=(f)=>()=>{K=Math.max(1,Math.sqrt(data.S.count));f();};
+
+/* 1. Profit & costs: what the owner really keeps */
+function profit(){
+ const m=M(); if(st.expFor!==data.S.count){st.expFor=data.S.count;const f=(x)=>Math.round(m*x/1000)*1000;st.exp={rent:f(.03),sal:f(.065),pow:f(.012),oth:f(.01)};}
+ const e=st.exp,g=gm(),gross=m*g,waste=m*.009,fixed=e.rent+e.sal+e.pow+e.oth,net=gross-waste-fixed,be=(fixed+waste)/g/30;
+ const per=(x)=>x/m*100, rows=[["Goods you bought",100-g*100],["Wastage & expiry",per(waste)],["Rent",per(e.rent)],["Salaries",per(e.sal)],["Electricity",per(e.pow)],["Other costs",per(e.oth)],["YOU KEEP",per(net)]];
+ setTab(`<p class="say">Last 30 days you received <b>${inr(m)}</b>. After goods, wastage and running costs you really keep about <b class="${cls(net)}">${inr(net)}</b>. You must sell about <b>${inr(be)}</b> every day just to break even. Today you sold <b class="${T.today>=be?"up":"down"}">${inr(T.today)}</b>.</p>
+ <div class="tiles">${tile("Profit before running costs",inr(gross),`<span class="flat">${(g*100).toFixed(0)}% of sales</span>`,"Sales minus what the goods cost.")}${tile("Running costs a month",inr(fixed+waste),"","Rent, salaries, electricity, other and wastage.")}${tile("Break-even sales per day",inr(be),`<span class="${T.today>=be?"up":"down"}">${T.today>=be?"▲ Today is above it":"▼ Today is below it"}</span>`,"Below this line the shop loses money.")}${tile("GST to keep aside (estimate)",inr(m*.045),"","About 4.5% of sales. Confirm with your accountant.")}</div>
+ <div class="cols2"><section class="box"><h2>Your monthly costs (change them)</h2><div class="controls">${[["rent","Rent"],["sal","Salaries"],["pow","Electricity"],["oth","Other"]].map(([k,l])=>`<label>${l} (₹)<input type="number" data-e="${k}" value="${e[k]}" min="0" step="1000"></label>`).join("")}</div><p class="note">Sample figures. Type your own and press Enter.</p></section>
+ <section class="box"><h2>Where every ₹100 you receive goes</h2>${hbars(rows.map((r,i)=>({label:r[0],v:Math.max(0,r[1]),cls:i===6?"hot":""})),(v)=>"₹"+v.toFixed(1))}</section></div>`);
+ document.querySelectorAll("[data-e]").forEach(i=>i.addEventListener("change",()=>{st.exp[i.dataset.e]=Math.max(0,+i.value||0);profit();}));
+}
+
+/* 2. Auto purchase orders, grouped by supplier, with owner approval limit */
+const SUP={"Health drinks":"Kaveri Distributors","Tea":"Kaveri Distributors","Rice":"Sri Venkateswara Traders","Pulses":"Sri Venkateswara Traders","Cooking oil":"Deccan Oils","Biscuits":"Metro Biscuits & Snacks"};
+function orders(){
+ st.poOk=st.poOk||{}; st.poLim=st.poLim||25000*K; const r=R(11), g={};
+ B.forEach(p=>{const d=p.units/30,lead=3+Math.floor(r()*4),oh=p.id===0?1:Math.max(0,Math.round(d*(r()*14-1))),q=Math.ceil(d*(lead+7)-oh);if(q>0){(g[SUP[p.cat]||"Local Wholesale Mart"]=g[SUP[p.cat]||"Local Wholesale Mart"]||[]).push({p,q,v:q*p.cost});}});
+ const list=Object.entries(g).map(([s,l])=>({s,l,t:sum(l,x=>x.v)})).sort((a,b)=>b.t-a.t);
+ setTab(`<p class="say">The app wrote <b>${list.length} purchase orders</b> for you (${inr(sum(list,x=>x.t))} in total) from sales speed, delivery time and stock on hand. Orders above <b>${inr(st.poLim)}</b> wait for your approval. You only press <b>Approve</b> and <b>Send</b>.</p>
+ <section class="box"><div class="controls"><label>Approval limit (₹)<input id="lim" type="number" value="${Math.round(st.poLim)}" step="5000" min="0"></label></div></section>
+ ${list.map(o=>{const need=o.t>st.poLim,ok=st.poOk[o.s]||!need,txt="Order from "+o.s+":\n"+o.l.map(x=>`${x.p.name}: ${num(x.q)} ${x.p.unit} @ ₹${(+x.p.cost).toFixed(2)} each = ${inr(x.v)}`).join("\n");return `<section class="box"><div class="tools"><h2 style="margin:0">${esc(o.s)}</h2>${ok?P("good",need?"Approved":"Within limit"):P("watch","Needs your approval")}<b>${inr(o.t)}</b></div>${tbl([["Product"],["Order",1],["Rate for 1 piece",1],["Total",1]],o.l.map(x=>`<tr><td>${esc(x.p.name)}</td><td class="n">${num(x.q)} ${esc(x.p.unit)}</td><td class="n">₹${(+x.p.cost).toFixed(2)} per ${esc(x.p.unit).replace(/s$/,"")}</td><td class="n">${inr(x.v)}</td></tr>`))}<div class="pager">${need&&!ok?`<button class="btn go" data-ap="${esc(o.s)}">Approve</button>`:""}<a class="btn${ok?" go":""}" ${ok?`href="${wa(txt)}" target="_blank" rel="noopener"`:'style="opacity:.4;pointer-events:none"'}>Send on WhatsApp</a></div></section>`}).join("")}`);
+ $("lim").addEventListener("change",e=>{st.poLim=+e.target.value||0;orders();});
+ document.querySelectorAll("[data-ap]").forEach(b=>b.addEventListener("click",()=>{st.poOk[b.dataset.ap]=true;orders();}));
+}
+
+/* 3. Expiry & wastage: sell the oldest first, mark down before it is lost */
+function expiry(){
+ const r=R(5),rows=B.map(p=>{const s=Math.round(p.units/30*(4+r()*16)),d=Math.round(r()*r()*40)+1;return{p,s,d,v:s*p.cost};}).sort((a,b)=>a.d-b.d),risk=rows.filter(x=>x.d<=14);
+ const act=x=>x.d<=3?["check","Markdown 30% today"]:x.d<=7?["check","Markdown 15%, front shelf"]:x.d<=14?["watch","Put in front, sell first"]:["good","Fine"];
+ setTab(`<p class="say"><b>${inr(sum(risk,x=>x.v))}</b> of stock expires within 14 days. Selling it first and marking it down early can save about <b>${inr(sum(risk,x=>x.v)*.6)}</b>. Last 30 days wastage was about <b>${inr(M()*.009)}</b>.</p>
+ <section class="box">${tbl([["Product"],["Action"],["Days to expiry",1],["Stock",1],["Money tied up",1]],rows.slice(0,st.easy?6:12).map(x=>{const a=act(x);return `<tr><td>${esc(x.p.name)}</td><td>${P(a[0],a[1])}</td><td class="n ${x.d<=7?"down":""}">${x.d}</td><td class="n">${num(x.s)} ${esc(x.p.unit)}</td><td class="n">${inr(x.v)}</td></tr>`}))}<p class="note">In the real app, expiry dates come from the batch scanned at delivery, and the oldest batch is billed first.</p></section>`);
+}
+
+/* 4. Khata: who owes money and who to remind */
+function khata(){
+ const r=R(9),N0=["Ramesh Babu","Lakshmi Devi","Venkat Rao","Sita Mahalakshmi","Srinivas Reddy","Padma","Kiran Kumar","Anitha","Ravi Teja","Suresh","Bhavani","Murali Krishna","Saroja","Naga Raju"];
+ const c=N0.map(n=>({n,o:Math.round((800+r()*9000)*K/10)*10,d:Math.round(r()*75)})).sort((a,b)=>b.d-a.d),tot=sum(c,x=>x.o),late=sum(c.filter(x=>x.d>30),x=>x.o);
+ const bk=[["0-15 days",x=>x.d<=15],["16-30 days",x=>x.d>15&&x.d<=30],["31-60 days",x=>x.d>30&&x.d<=60],["Over 60 days",x=>x.d>60]];
+ setTab(`<div class="tiles">${tile("Money customers owe you",inr(tot),"","Credit given on bills and not yet paid.")}${tile("Late by over 30 days",inr(late),`<span class="down">${Math.round(late/tot*100)}% of it</span>`,"Remind these first.")}${tile("Customers on credit",c.length,"","")}</div>
+ <div class="cols2"><section class="box"><h2>How old is the credit?</h2>${hbars(bk.map((b,i)=>({label:b[0],v:sum(c.filter(b[1]),x=>x.o),cls:i>1?"hot":""})),v=>inr(v))}</section>
+ <section class="box"><h2>Remind them</h2>${tbl([["Customer"],["Owes",1],["Days late",1],[""]],c.map(x=>`<tr><td>${esc(x.n)}</td><td class="n">${inr(x.o)}</td><td class="n ${x.d>30?"down":""}">${x.d}</td><td><a class="btn" target="_blank" rel="noopener" href="${wa(`Namaste ${x.n}, your balance at our shop is ${inr(x.o)}. Please pay when you can. Thank you.`)}">WhatsApp</a></td></tr>`))}<p class="note">Opens WhatsApp with a polite message ready. You choose the contact and press send.</p></section></div>`);
+}
+
+/* 5. Staff & cash: where to look, never proof */
+function staff(){
+ const r=R(3),nm=["Anil","Divya","Mahesh","Swathi","Prasad","Rekha"].slice(0,data.S.count===1?2:6);
+ const s=nm.map(n=>({n,bph:14+Math.round(r()*16),v:Math.round(r()*r()*10),dc:+(r()*6).toFixed(1),g:r()<.25?-Math.round(150+r()*400):Math.round((r()-.5)*80)}));
+ const f=x=>Math.abs(x.g)>=300||x.v>=6||x.dc>=4.5?["check","Please look"]:Math.abs(x.g)>=120||x.v>=4||x.dc>=3.5?["watch","Keep an eye"]:["good","Normal"];
+ setTab(`<p class="say">Each cashier's bills per hour, cancelled bills, discounts given and cash difference. A flag means <b>look at the records</b>, not that someone did something wrong. A new cashier or a rush hour can cause the same numbers.</p>
+ <section class="box">${tbl([["Cashier"],["Status"],["Bills / hour",1],["Cancelled bills",1],["Discount given",1],["Cash difference",1]],s.map(x=>{const a=f(x);return `<tr><td>${x.n}</td><td>${P(a[0],a[1])}</td><td class="n">${x.bph}</td><td class="n ${x.v>=6?"down":""}">${x.v}</td><td class="n ${x.dc>=4.5?"down":""}">${x.dc}%</td><td class="n ${Math.abs(x.g)>=300?"down":""}">${x.g===0?"None":(x.g<0?"−":"+")+inr(Math.abs(x.g))}</td></tr>`}))}</section>`);
+}
+
+/* 6. Customers: repeat buyers and win-back */
+function customers(){
+ const r=R(21),act=Math.round(T.bills*18),rep=58+Math.round(r()*10),lap=Math.round(act*.14),top=["Lakshmi Devi","Venkat Rao","Srinivas Reddy","Padma","Kiran Kumar"].map((n,i)=>({n,v:Math.round((18000-i*2300)*K),vis:14-i}));
+ setTab(`<div class="tiles">${tile("Customers this month",num(act),"","Counted from phone numbers on bills.")}${tile("Come back within 30 days",rep+"%",`<span class="${rep>=60?"up":"flat"}">${rep>=60?"healthy":"can improve"}</span>`,"Repeat customers are cheaper than finding new ones.")}${tile("Not seen for 30+ days",num(lap),"","Worth a friendly message.")}</div>
+ <div class="cols2"><section class="box"><h2>Your best customers this month</h2>${hbars(top.map(x=>({label:x.n,v:x.v})),v=>inr(v))}</section>
+ <section class="box"><h2>Win back lapsed customers</h2><p>${num(lap)} customers usually shop every week but have not come for a month. Send them this offer:</p><p class="say">"Namaste! We miss you at our shop. Show this message and get ₹20 off on a bill above ₹500 this week."</p><a class="btn go" target="_blank" rel="noopener" href="${wa("Namaste! We miss you at our shop. Show this message and get ₹20 off on a bill above ₹500 this week.")}">Share on WhatsApp</a><p class="note">Only customers who agreed to receive messages should be contacted.</p></section></div>`);
+}
+
+/* 7. Price watch against the next market */
+function price(){
+ const r=R(17),rows=B.map(p=>{const c=Math.round(p.price*(.93+r()*.14)),d=pct(p.price,c);let a=["good","Price is fine"],gain=0;if(d>=4)a=["check",`Market is cheaper by ${inr(p.price-c)}`];else if(d<=-3&&p.margin>.08){a=["watch",`Room to raise to ${inr(c-1)}`];gain=p.units*(c-1-p.price);}return{p,c,d,a,gain};}).sort((a,b)=>b.gain-a.gain);
+ setTab(`<p class="say">Small price rises where you are well below the market could add about <b>${inr(sum(rows,x=>x.gain))}</b> a month. Where a competitor is clearly cheaper you may be losing customers. Market prices here are samples; in the real app you type them in when a staff member does a price walk.</p>
+ <section class="box">${tbl([["Product"],["Your price",1],["Market price",1],["Difference",1],["Suggestion"],["Extra profit a month",1]],rows.map(x=>`<tr><td>${esc(x.p.name)}</td><td class="n">${inr(x.p.price)}</td><td class="n">${inr(x.c)}</td><td class="n ${x.d>=4?"down":x.d<=-3?"up":"flat"}">${sgn(x.d)}</td><td>${P(x.a[0],x.a[1])}</td><td class="n">${x.gain?inr(x.gain):"-"}</td></tr>`))}</section>`);
+}
+
+/* 8. Owner's day: the work an owner does by hand, and what this app takes over */
+function routine(){
+ const S=[["Check last night's cash and sales","Today",25,2],["Phone or visit branches to ask about stock","Stock & reorder",60,5],["Write the buying list and call suppliers","Auto purchase orders",45,5],["Match delivery slips with the order","Suppliers",30,5],["Walk the shelves to find expiring goods","Expiry & wastage",40,5],["Chase customers for credit","Credit (Khata)",35,8],["Watch cashiers for mistakes","Staff & cash",45,5],["Check what the next market charges","Price watch",30,3],["Plan festival offers and extra stock","Offers & Forecast",60,10],["Count cash and write the day book","Today & Profit",40,6]];
+ const a=sum(S,x=>x[2]),b=sum(S,x=>x[3]),amb=Math.abs(T.cashGap)<400,lowOk=T.low<=Math.max(3,data.S.count*2);
+ setTab(`<p class="say">A market owner spends about <b>${(a/60).toFixed(1)} hours</b> a day on these jobs by hand. With this app it is about <b>${(b/60).toFixed(1)} hours</b>. You save <b>${((a-b)/60).toFixed(1)} hours a day</b>, roughly <b>${Math.round((a-b)*30/60)} hours a month</b>, and mistakes drop because nothing depends on memory.</p>
+ <section class="box">${tbl([["Daily job"],["Where in the app"],["By hand (min)",1],["With app (min)",1]],S.map(x=>`<tr><td class="wrap">${x[0]}</td><td>${x[1]}</td><td class="n">${x[2]}</td><td class="n up">${x[3]}</td></tr>`))}<p class="note">Times are estimates for a mid-size shop. Your own may differ.</p></section>
+ <section class="box"><h2>Closing checklist (ticks itself)</h2><ul class="plain"><li>${amb?"✅":"⬜"} Cash matches the bills ${amb?"":"(please recount)"}</li><li>${lowOk?"✅":"⬜"} Low-stock list is under control</li><li>✅ Purchase orders approved or within limit</li><li>⬜ Expiring goods marked down (open Expiry & wastage)</li><li>⬜ Credit reminders sent (open Credit)</li></ul></section>`);
+}
+
+const add=[["profit","Profit & costs",profit],["orders","Auto purchase orders",orders],["expiry","Expiry & wastage",expiry],["khata","Credit (Khata)",khata],["staff","Staff & cash",staff],["customers","Customers",customers],["price","Price watch",price]];
+TABS.splice(TABS.length-1,0,...add.map(t=>[t[0],t[1],wrap(t[2])])); TABS.splice(1,0,["routine","Owner's day",wrap(routine)]);
+try{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h))st.tab=h;}catch(e){}
+render();
+})();
+
+</script>
+<script>
+(function(){
+/* ---- 1. Many more brands (shampoo, soap, detergent, dish wash, toothpaste, noodles, drinks, atta, snacks...) ---- */
+const MORE={
+"Shampoo":[["Clinic Plus","Clinic Plus shampoo 650 ml",4,345],["Sunsilk","Sunsilk shampoo 650 ml",3.5,380],["Head & Shoulders","Head & Shoulders 340 ml",3,330],["Dove","Dove shampoo 340 ml",2.5,345],["Pantene","Pantene shampoo 340 ml",2,335],["Chik","Chik shampoo sachets (pack)",2.5,60]],
+"Bath soap":[["Lux","Lux soap 4-pack",5,160],["Lifebuoy","Lifebuoy soap 4-pack",4.5,130],["Dettol","Dettol soap 3-pack",4,150],["Santoor","Santoor soap 4-pack",4,175],["Cinthol","Cinthol soap 4-pack",3,170],["Pears","Pears soap 3-pack",2,190],["Medimix","Medimix soap 3-pack",2.5,135]],
+"Washing powder":[["Surf Excel","Surf Excel 1 kg",5,220],["Ariel","Ariel 1 kg",4,235],["Tide","Tide 1 kg",5,135],["Wheel","Wheel 1 kg",4.5,95],["Ghadi","Ghadi 1 kg",3.5,80],["Nirma","Nirma 1 kg",3,70],["Rin","Rin bar 4-pack",2.5,60]],
+"Dish wash":[["Vim","Vim liquid 500 ml",4,110],["Pril","Pril liquid 500 ml",2.5,105],["Exo","Exo bar 3-pack",2,60],["Vim bar","Vim bar 3-pack",3,55]],
+"Toothpaste":[["Colgate","Colgate 200 g",6,115],["Pepsodent","Pepsodent 200 g",3.5,95],["Close Up","Close Up 150 g",2.5,90],["Dabur Red","Dabur Red 200 g",3,110],["Sensodyne","Sensodyne 70 g",2,135],["Patanjali Dant Kanti","Dant Kanti 200 g",2,100]],
+"Noodles":[["Maggi","Maggi 4-pack",6,56],["Yippee","Yippee 4-pack",3,52],["Top Ramen","Top Ramen 4-pack",2,48],["Wai Wai","Wai Wai 4-pack",1.5,45]],
+"Soft drinks":[["Coca-Cola","Coca-Cola 2 L",4,95],["Pepsi","Pepsi 2 L",4,95],["Thums Up","Thums Up 2 L",4.5,95],["Sprite","Sprite 2 L",3,95],["Maaza","Maaza 1.2 L",3,70],["Frooti","Frooti 1.2 L",2.5,70]],
+"Atta & flour":[["Aashirvaad","Aashirvaad atta 5 kg",6,290],["Pillsbury","Pillsbury atta 5 kg",3,275],["Fortune Chakki","Fortune Chakki atta 5 kg",3.5,270]],
+"Salt & sugar":[["Tata Salt","Tata Salt 1 kg",4,28],["Annapurna","Annapurna salt 1 kg",2,26],["Sugar","Sugar (loose) per kg",7,46],["Jaggery","Jaggery (loose) per kg",1.5,70]],
+"Spices":[["Aachi","Aachi chilli powder 200 g",3,98],["Everest","Everest turmeric 100 g",2.5,48],["MDH","MDH garam masala 100 g",2,95],["Catch","Catch cumin 100 g",1.2,85]],
+"Snacks":[["Lay's","Lay's chips 52 g",4,20],["Kurkure","Kurkure 55 g",4,20],["Bingo","Bingo chips 52 g",2.5,20],["Haldiram","Haldiram bhujia 400 g",2.5,125]],
+"Chocolates":[["Dairy Milk","Cadbury Dairy Milk 50 g",3.5,50],["Five Star","Five Star 40 g",2,25],["KitKat","KitKat 4-finger",2,40],["Perk","Perk 30 g",1.5,20]],
+"Milk & dairy":[["Heritage","Heritage milk 500 ml",8,30],["Amul","Amul milk 500 ml",6,33],["Vijaya","Vijaya milk 500 ml",5,29],["Amul butter","Amul butter 100 g",2,58]],
+"Hair oil":[["Parachute","Parachute oil 200 ml",3.5,100],["Nihar Naturals","Nihar Naturals 200 ml",2,95],["Bajaj Almond Drops","Almond Drops 200 ml",1.5,130],["Dabur Amla","Dabur Amla 200 ml",2,110]],
+"Coffee":[["Bru","Bru Instant 100 g",2,290],["Nescafe","Nescafe Classic 100 g",2.5,300]]};
+const rr=rng(9091);
+Object.entries(MORE).forEach(([c,l])=>l.forEach(x=>PRODUCT_DEFS.push([c,x[0],x[1],x[2],x[3],+(x[3]*.88).toFixed(1),Math.round((rr()-.5)*24),Math.floor(rr()*rr()*7),rr()<.25?3+Math.floor(rr()*8):0,"packs"])));
+
+/* ---- 2. Brand search that forgives spelling mistakes ---- */
+const lev=(a,b)=>{const m=[...Array(a.length+1)].map((_,i)=>[i]);for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length];};
+const sk=(s)=>s.replace(/[aeiouh]/g,"").replace(/(.)\1+/g,"$1");
+function fz(q){q=q.toLowerCase().trim();if(!q)return[];const qs=q.split(/\s+/).filter(Boolean);
+ return B.map(p=>{const t=(p.brand+" "+p.name+" "+p.cat).toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);t.push(t.join(""));let s=0;
+  for(const w of qs){let best=9;for(const k of t){let d=(k.startsWith(w)||(k.length>2&&w.startsWith(k)))?0:lev(w,k);if(w.length>2&&k.includes(w))d=Math.min(d,.5);if(w.length>3&&sk(w)===sk(k))d=Math.min(d,1);best=Math.min(best,d);}
+   if(best<=Math.max(1,Math.floor(w.length/3)))s+=3-best;else{s=-99;break;}}
+  return{p,s,exact:(p.brand+" "+p.name+" "+p.cat).toLowerCase().includes(q)};}).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.p.rev-a.p.rev);}
+function brands2(){
+ st.bq=st.bq||"";const cats=["All",...new Set(B.map(p=>p.cat))],peers=(p)=>B.filter(x=>x.cat===p.cat);
+ const rowsOf=(l)=>`<div class="tbl"><table><thead><tr><th>Product</th><th>Group</th><th>Demand</th><th class="n">Units sold</th><th class="n">Money received</th><th class="n">Growth</th></tr></thead><tbody>${l.map(p=>{const v=brandVerdict(p,peers(p));return `<tr><td><button class="btn" data-b="${esc(p.name)}">${esc(p.name)}</button></td><td>${esc(p.cat)}</td><td><span class="pill ${v[0]}">${v[1]}</span></td><td class="n">${num(p.units)} ${esc(p.unit)}</td><td class="n">${inr(p.rev)}</td><td class="n ${cls(p.g)}">${sgn(p.g,0)}</td></tr>`}).join("")}</tbody></table></div>`;
+ setTab(`<section class="box"><div class="controls"><label style="flex:1 1 22rem">Search any brand or product<input id="bq" list="bl" type="search" value="${esc(st.bq)}" placeholder="Try: colgat, sampoo, maggie, surfexcel, vim..." autocomplete="off"></label>
+ <label>Group<select id="bcat">${cats.map(c=>`<option${c===st.bcat?" selected":""}>${esc(c)}</option>`).join("")}</select></label><label>Rank by<select id="bsort">${[["revenue","Money received"],["units","Units sold"],["growth","Growth"],["profit","Estimated profit"]].map(([k,l])=>`<option value="${k}"${k===st.bsort?" selected":""}>${l}</option>`).join("")}</select></label></div>
+ <datalist id="bl">${[...new Set(B.map(p=>p.brand))].map(b=>`<option value="${esc(b)}">`).join("")}</datalist><p class="note">${B.length} products in ${cats.length-1} groups. Spelling mistakes are fine: the search finds the closest brand.</p></section><div id="bres" class="stack"></div>`);
+ const draw=()=>{const q=st.bq.trim(),el=$("bres");
+  if(q){const res=fz(q);if(!res.length){el.innerHTML=`<section class="box"><p>No brand matches <b>"${esc(q)}"</b>. Check the spelling, or try a group such as shampoo, soap, detergent, dish wash, toothpaste.</p></section>`;return;}
+   const b=res[0].p,pe=peers(b),rank=[...pe].sort((x,y)=>y.rev-x.rev).findIndex(x=>x.id===b.id)+1,v=brandVerdict(b,pe);
+   el.innerHTML=`<section class="box">${res[0].exact?"":`<p class="say">You typed <b>"${esc(q)}"</b>. Showing results for <b>${esc(b.brand)}</b>.</p>`}<h2>${esc(b.name)} ${`<span class="pill ${v[0]}">${v[1]}</span>`}</h2>
+   <div class="tiles">${tile("Sold in 30 days",num(b.units)+" "+esc(b.unit),"",esc(b.cat))}${tile("Money received",inr(b.rev),`<span class="${cls(b.g)}">${sgn(b.g,0)} vs before</span>`,"")}${tile("Rank in its group","#"+rank+" of "+pe.length,"",esc(b.cat))}${tile("Estimated profit",inr(b.profit),`<span class="flat">${(b.margin*100).toFixed(0)}% margin</span>`,"")}</div>
+   <div class="cols2"><div><h3>Why it sells this way</h3><ul class="plain">${brandReasons(b,pe).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div><div><h3>Against others in ${esc(b.cat)}</h3>${hbars([...pe].sort((x,y)=>y.rev-x.rev).map(x=>({label:x.brand,v:x.rev,cls:x.id===b.id?"hot":""})),v=>inr(v))}</div></div></section>
+   ${res.length>1?`<section class="box"><h2>Other matches</h2>${rowsOf(res.slice(1,13).map(x=>x.p))}</section>`:""}`;}
+  else{const key={revenue:p=>p.rev,units:p=>p.units,growth:p=>p.g,profit:p=>p.profit}[st.bsort],l=B.filter(p=>st.bcat==="All"||p.cat===st.bcat).sort((a,b)=>key(b)-key(a)),top=B.filter(p=>brandVerdict(p,peers(p))[0]==="good").sort((a,b)=>b.rev-a.rev).slice(0,4),low=B.filter(p=>brandVerdict(p,peers(p))[0]==="check").sort((a,b)=>a.rev-b.rev).slice(0,4);
+   el.innerHTML=`<p class="say">Last 30 days. In demand: <b>${top.map(p=>esc(p.name)).join(", ")}</b>. Slow compared with others of the same kind: <b>${low.map(p=>esc(p.name)).join(", ")}</b>.</p><section class="box">${rowsOf(l)}</section>`;}
+  el.querySelectorAll("[data-b]").forEach(b=>b.addEventListener("click",()=>{st.bq=b.dataset.b;$("bq").value=st.bq;draw();window.scrollTo(0,0);}));};
+ $("bq").addEventListener("input",e=>{st.bq=e.target.value;draw();});
+ $("bcat").addEventListener("change",e=>{st.bcat=e.target.value;st.bq="";brands2();});$("bsort").addEventListener("change",e=>{st.bsort=e.target.value;brands2();});draw();
+}
+
+/* ---- 3. Cash screen: say exactly where the cash is short and why ---- */
+function staff2(){
+ const r=rng(3+data.S.count*7),cn=["Anil","Divya","Mahesh","Swathi","Prasad","Rekha","Kishore","Lavanya"],one=data.S.count===1,bs=[...data.branches].sort((a,b)=>a.cashGap-b.cashGap).slice(0,Math.min(data.branches.length,6)),rows=[];
+ bs.forEach((b,i)=>(one?[1]:[1,2]).forEach(c=>{const sh=one?1:c===1?.6:.4,exp=Math.round(b.today*.35*sh/10)*10,d=Math.round(b.cashGap*sh/10)*10;rows.push({b:b.name,c,who:cn[(i*2+c)%8],exp,got:exp+d,d,vo:Math.round(r()*r()*10),dc:+(r()*6).toFixed(1)});}));
+ rows.sort((a,b)=>a.d-b.d);
+ const res=x=>x.d<=-120?["check","Short "+inr(-x.d),"Customer may have got too much change, or a bill was cancelled after cash was taken."]:x.d>=120?["watch","Extra "+inr(x.d),"Change may not have been given back, or a cash payment was recorded as UPI."]:["good","Matches","Nothing to do."];
+ setTab(`<section class="box"><h2>What does "cash short" mean?</h2><ul class="plain"><li><b>Bills say</b> = cash the bills show was paid in cash today. This is what should be in the drawer.</li><li><b>Counted</b> = cash the cashier really counted in the drawer when closing.</li><li><b>Short</b> = counted is <b>less</b> than the bills say. <b>Extra</b> = counted is <b>more</b>. The table shows <b>which branch, which counter and which cashier</b>.</li></ul></section>
+ <section class="box"><div class="tbl"><table><thead><tr><th>Branch</th><th>Counter</th><th>Cashier</th><th class="n">Bills say</th><th class="n">Counted in drawer</th><th>Result</th><th class="n">Cancelled bills</th><th class="n">Discount given</th><th>What it may mean</th></tr></thead><tbody>${rows.map(x=>{const a=res(x);return `<tr><td>${esc(x.b)}</td><td>Counter ${x.c}</td><td>${x.who}</td><td class="n">${inr(x.exp)}</td><td class="n">${inr(x.got)}</td><td><span class="pill ${a[0]}">${a[1]}</span></td><td class="n ${x.vo>=6?"down":""}">${x.vo}</td><td class="n ${x.dc>=4.5?"down":""}">${x.dc}%</td><td class="wrap">${a[2]}</td></tr>`}).join("")}</tbody></table></div><p class="note">A difference is a reason to recount and look at the bills. It is not proof that anyone did something wrong. Cashier names are samples.</p></section>`);
+}
+
+/* ---- 4. Regional languages ---- */
+const L=["en","te","hi","ta","kn"],NAMES=["English","తెలుగు","हिन्दी","தமிழ்","ಕನ್ನಡ"];
+const D={"Today":["ఈ రోజు","आज","இன்று","ಇಂದು"],"Owner's day":["యజమాని రోజు","मालिक का दिन","உரிமையாளர் நாள்","ಮಾಲೀಕರ ದಿನ"],"Sales history":["అమ్మకాల చరిత్ర","बिक्री का इतिहास","விற்பனை வரலாறு","ಮಾರಾಟ ಇತಿಹಾಸ"],"Brands & products":["బ్రాండ్లు & ఉత్పత్తులు","ब्रांड और उत्पाद","பிராண்டுகள் & பொருட்கள்","ಬ್ರಾಂಡ್‌ಗಳು ಮತ್ತು ಉತ್ಪನ್ನಗಳು"],"Regional source":["ప్రాంతీయ మూలం","क्षेत्रीय स्रोत","பிராந்திய மூலம்","ಪ್ರಾದೇಶಿಕ ಮೂಲ"],"Offers & festivals":["ఆఫర్లు & పండుగలు","ऑफर और त्योहार","சலுகைகள் & திருவிழாக்கள்","ಆಫರ್ & ಹಬ್ಬಗಳು"],"Stock & reorder":["స్టాక్ & ఆర్డర్","स्टॉक और ऑर्डर","இருப்பு & ஆர்டர்","ಸ್ಟಾಕ್ & ಆರ್ಡರ್"],"Suppliers":["సరఫరాదారులు","सप्लायर","சப்ளையர்கள்","ಪೂರೈಕೆದಾರರು"],"Forecast":["అంచనా","पूर्वानुमान","முன்னறிவிப்பு","ಮುನ್ನೋಟ"],"Ask the assistant":["అసిస్టెంట్‌ను అడగండి","असिस्टेंट से पूछें","உதவியாளரிடம் கேளுங்கள்","ಸಹಾಯಕನನ್ನು ಕೇಳಿ"],"Profit & costs":["లాభం & ఖర్చులు","मुनाफा और खर्च","லாபம் & செலவுகள்","ಲಾಭ & ವೆಚ್ಚ"],"Auto purchase orders":["ఆటో కొనుగోలు ఆర్డర్లు","ऑटो खरीद ऑर्डर","தானியங்கி கொள்முதல்","ಸ್ವಯಂ ಖರೀದಿ ಆರ್ಡರ್"],"Expiry & wastage":["గడువు & వృథా","एक्सपायरी और बर्बादी","காலாவதி & வீணாதல்","ಅವಧಿ & ವ್ಯರ್ಥ"],"Credit (Khata)":["అప్పు (ఖాతా)","उधार (खाता)","கடன் (கணக்கு)","ಸಾಲ (ಖಾತೆ)"],"Staff & cash":["సిబ్బంది & నగదు","स्टाफ और नकद","ஊழியர் & பணம்","ಸಿಬ್ಬಂದಿ & ನಗದು"],"Customers":["కస్టమర్లు","ग्राहक","வாடிக்கையாளர்கள்","ಗ್ರಾಹಕರು"],"Price watch":["ధరల పర్యవేక్షణ","भाव पर नज़र","விலை கண்காணிப்பு","ಬೆಲೆ ಗಮನ"],
+"Business size":["వ్యాపార పరిమాణం","व्यापार का आकार","வணிக அளவு","ವ್ಯಾಪಾರದ ಗಾತ್ರ"],"Screen style":["స్క్రీన్ శైలి","स्क्रीन शैली","திரை பாணி","ಪರದೆ ಶೈಲಿ"],"Easy":["సులభం","आसान","எளிது","ಸುಲಭ"],"Full detail":["పూర్తి వివరాలు","पूरा विवरण","முழு விவரம்","ಪೂರ್ಣ ವಿವರ"],"Language":["భాష","भाषा","மொழி","ಭಾಷೆ"],
+"Today in one look":["ఈ రోజు ఒక్క చూపులో","आज एक नज़र में","இன்று ஒரே பார்வையில்","ಇಂದು ಒಂದು ನೋಟದಲ್ಲಿ"],"Needs your attention":["మీ దృష్టి అవసరం","आपके ध्यान की जरूरत","உங்கள் கவனம் தேவை","ನಿಮ್ಮ ಗಮನ ಬೇಕು"],"How much money came in today?":["ఈ రోజు ఎంత డబ్బు వచ్చింది?","आज कितना पैसा आया?","இன்று எவ்வளவு பணம் வந்தது?","ಇಂದು ಎಷ್ಟು ಹಣ ಬಂತು?"],"How many bills were made?":["ఎన్ని బిల్లులు చేశారు?","कितने बिल बने?","எத்தனை பில்கள் போடப்பட்டன?","ಎಷ್ಟು ಬಿಲ್ ಆದವು?"],"How much did I probably earn?":["నాకు సుమారు ఎంత లాభం?","मुझे लगभग कितना मुनाफा हुआ?","எனக்கு சுமார் எவ்வளவு லாபம்?","ನನಗೆ ಸುಮಾರು ಎಷ್ಟು ಲಾಭ?"],"Does the cash match the bills?":["నగదు బిల్లులకు సరిపోతోందా?","क्या नकद बिल से मेल खाता है?","பணம் பில்களுடன் பொருந்துகிறதா?","ಹಣ ಬಿಲ್‌ಗೆ ಹೊಂದುತ್ತಿದೆಯೇ?"],
+"Going well":["బాగుంది","अच्छा चल रहा","நன்றாக","ಚೆನ್ನಾಗಿದೆ"],"Keep an eye":["గమనించండి","नज़र रखें","கவனியுங்கள்","ಗಮನಿಸಿ"],"Please check":["దయచేసి చూడండి","कृपया जांचें","சரிபாருங்கள்","ಪರಿಶೀಲಿಸಿ"],"Check":["చూడండి","जांचें","பாருங்கள்","ನೋಡಿ"],"Watch":["గమనించు","ध्यान दें","கவனி","ಗಮನಿಸಿ"],
+"Search any brand or product":["ఏదైనా బ్రాండ్ లేదా వస్తువు వెతకండి","कोई भी ब्रांड या उत्पाद खोजें","எந்த பிராண்டையும் தேடுங்கள்","ಯಾವುದೇ ಬ್ರಾಂಡ್ ಹುಡುಕಿ"],"Group":["గ్రూప్","समूह","குழு","ಗುಂಪು"],"Rank by":["ర్యాంక్","क्रम","வரிசை","ಶ್ರೇಣಿ"],"Product":["వస్తువు","उत्पाद","பொருள்","ಉತ್ಪನ್ನ"],"Branch":["బ్రాంచ్","शाखा","கிளை","ಶಾಖೆ"],"Counter":["కౌంటర్","काउंटर","கவுண்டர்","ಕೌಂಟರ್"],"Cashier":["క్యాషియర్","कैशियर","காசாளர்","ಕ್ಯಾಷಿಯರ್"],"Bills say":["బిల్లుల ప్రకారం","बिल के अनुसार","பில் படி","ಬಿಲ್ ಪ್ರಕಾರ"],"Counted in drawer":["డ్రాయర్‌లో లెక్కించినది","दराज में गिना","டிராயரில் எண்ணியது","ಡ್ರಾಯರ್‌ನಲ್ಲಿ ಎಣಿಸಿದ್ದು"],"Result":["ఫలితం","नतीजा","முடிவு","ಫಲಿತಾಂಶ"],"Matches":["సరిపోయింది","मेल खाता","பொருந்துகிறது","ಹೊಂದುತ್ತದೆ"]};
+const H1=["Owner <span class=\"acc\">Control Room</span>","యజమాని <span class=\"acc\">కంట్రోల్ రూమ్</span>","मालिक <span class=\"acc\">कंट्रोल रूम</span>","உரிமையாளர் <span class=\"acc\">கட்டுப்பாட்டு அறை</span>","ಮಾಲೀಕರ <span class=\"acc\">ನಿಯಂತ್ರಣ ಕೊಠಡಿ</span>"];
+function tr(){obs.disconnect();const li=L.indexOf(st.lang||"en");document.querySelector("h1").innerHTML=H1[li];
+ const w=document.createTreeWalker($("page"),NodeFilter.SHOW_TEXT);let n;while((n=w.nextNode())){if(n._o===undefined)n._o=n.nodeValue;const k=n._o.trim(),v=li>0&&D[k]&&D[k][li-1];const t=v?n._o.replace(k,v):(li===1&&window.PH?window.PH(n._o):n._o);if(n.nodeValue!==t)n.nodeValue=t;}
+ const sel=$("lang");if(sel)sel.value=st.lang||"en";obs.observe($("page"),{childList:true,subtree:true});}
+const obs=new MutationObserver(tr);
+
+/* ---- wire everything in ---- */
+const sw=(k,f)=>{const t=TABS.find(x=>x[0]===k);if(t)t[2]=f;};sw("brands",brands2);sw("staff",staff2);
+const lab=document.createElement("label");lab.innerHTML='Language<select id="lang">'+L.map((c,i)=>`<option value="${c}">${NAMES[i]}</option>`).join("")+"</select>";document.querySelector(".controls").appendChild(lab);
+$("lang").addEventListener("change",e=>{st.lang=e.target.value;tr();});
+prepare();render();tr();
+})();
+
+</script>
+<script>
+(function(){
+const LX={en:0,te:1,hi:2},lg=()=>LX[st.lang||"en"]||0,say=(a,b,c)=>[a,b||a,c||a][lg()];
+const hi=(r)=>r;
+/* ---------- Telugu phrase list for the detailed reports (whole words, longest first) ---------- */
+const PHT={"This week":"ఈ వారం","last week":"గత వారం","This month so far":"ఈ నెల ఇప్పటి వరకు","last month":"గత నెల","last year":"గత సంవత్సరం","This year so far":"ఈ సంవత్సరం ఇప్పటి వరకు","Money received":"వచ్చిన డబ్బు","Units sold":"అమ్మిన సంఖ్య","Growth":"పెరుగుదల","Estimated profit":"అంచనా లాభం","Est. profit":"అంచనా లాభం","Margin":"లాభ శాతం","Daily":"రోజువారీ","Weekly":"వారం వారీ","Monthly":"నెలవారీ","Yearly":"సంవత్సరం వారీ","Period":"కాలం","Change":"మార్పు","A year earlier":"ఒక సంవత్సరం క్రితం","Back":"వెనక్కి","Next":"తర్వాత","Orders":"ఆర్డర్లు","On time":"సమయానికి","Items short":"తక్కువ వచ్చినవి","Value short":"తక్కువ విలువ","You owe":"మీరు ఇవ్వాల్సింది","In stock":"స్టాక్‌లో","Sells per day":"రోజుకు అమ్మకం","Days left":"మిగిలిన రోజులు","Order this much":"ఇంత ఆర్డర్ చేయండి","Out of stock":"స్టాక్ లేదు","Order now":"ఇప్పుడే ఆర్డర్ చేయండి","Order soon":"త్వరలో ఆర్డర్ చేయండి","Enough":"సరిపోతుంది","Too much stock":"ఎక్కువ స్టాక్","Very high demand":"చాలా డిమాండ్","Slow seller":"నెమ్మదిగా అమ్ముడవుతోంది","Steady":"స్థిరంగా","Money today":"ఈ రోజు డబ్బు","Vs yesterday":"నిన్నటితో పోలిస్తే","vs yesterday":"నిన్నటితో పోలిస్తే","Bills":"బిల్లులు","Status":"స్థితి","Low stock":"తక్కువ స్టాక్","Region":"ప్రాంతం","Find a branch":"బ్రాంచ్ వెతకండి","Page":"పేజీ","Customer":"కస్టమర్","Owes":"ఇవ్వాల్సింది","Days late":"ఆలస్య రోజులు","Action":"చర్య","Stock":"స్టాక్","Money tied up":"ఇరుక్కున్న డబ్బు","Days to expiry":"గడువుకు రోజులు","Your price":"మీ ధర","Market price":"మార్కెట్ ధర","Difference":"తేడా","Suggestion":"సూచన","Approve":"ఆమోదించు","Send on WhatsApp":"వాట్సాప్‌లో పంపండి","WhatsApp":"వాట్సాప్","Cancelled bills":"రద్దైన బిల్లులు","Discount given":"ఇచ్చిన డిస్కౌంట్","What it may mean":"దీని అర్థం","Short":"తక్కువ","Extra":"ఎక్కువ","Supplier":"సరఫరాదారు","Verdict":"తీర్పు","Reliable":"నమ్మకమైనది","Please review":"దయచేసి చూడండి","Cost":"ఖర్చు","Order":"ఆర్డర్","Latest period":"తాజా కాలం","Expected":"అంచనా","Tuesday":"మంగళవారం","Monday":"సోమవారం","Wednesday":"బుధవారం","Thursday":"గురువారం","Friday":"శుక్రవారం","Saturday":"శనివారం","Sunday":"ఆదివారం","Which day of the week sells most?":"వారంలో ఏ రోజు ఎక్కువ అమ్ముడవుతుంది?","Your biggest day this year":"ఈ సంవత్సరం మీ పెద్ద రోజు","Why might they sell this way?":"ఇలా ఎందుకు అమ్ముడవుతున్నాయి?","Fair test":"సరైన పరీక్ష"};
+const PHK=Object.keys(PHT).sort((a,b)=>b.length-a.length),PHR=new RegExp("(?<![A-Za-z])("+PHK.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("|")+")(?![A-Za-z])","g");
+window.PH=(s)=>s.replace(PHR,(m)=>PHT[m]);
+
+/* ---------- Units (chapati unit, dress unit, shoes unit ...) ---------- */
+const UD=[["grocery","🛒","Grocery & staples","కిరాణా సరుకులు","किराना सामान",30],["bakery","🫓","Chapati & bakery unit","చపాతీ / బేకరీ యూనిట్","चपाती / बेकरी यूनिट",8],["veg","🥬","Vegetables & fruits","కూరగాయలు & పండ్లు","सब्ज़ी और फल",12],["dairy","🥛","Milk & dairy","పాలు & పాల ఉత్పత్తులు","दूध और डेयरी",9],["dress","👗","Dress & clothing","బట్టల యూనిట్","कपड़ों की यूनिट",12],["shoes","👟","Shoes & footwear","చెప్పులు & బూట్ల యూనిట్","जूते-चप्पल यूनिट",7],["elec","📺","Electronics & mobiles","ఎలక్ట్రానిక్స్ & మొబైల్స్","इलेक्ट्रॉनिक्स और मोबाइल",8],["care","🧴","Soaps, shampoo & cosmetics","సబ్బులు, షాంపూ, సౌందర్య సామాగ్రి","साबुन, शैम्पू, कॉस्मेटिक",8],["kitchen","🍳","Kitchen & home items","వంటింటి సామాగ్రి","रसोई का सामान",6],["meat","🍗","Meat & fish","మాంసం & చేపలు","मांस और मछली",5],["frozen","🧊","Frozen & ice cream","ఫ్రోజెన్ & ఐస్ క్రీం","फ्रोज़न और आइसक्रीम",4],["snacks","🍿","Snacks & sweets","స్నాక్స్ & స్వీట్లు","स्नैक्स और मिठाई",7],["drinks","🥤","Drinks & juices","డ్రింక్స్ & జ్యూస్","ड्रिंक्स और जूस",6],["liquor","🍺","Beer & wine","బీర్ & వైన్","बीयर और वाइन",3],["dryfruit","🥜","Dry fruits & nuts","డ్రై ఫ్రూట్స్","मेवे और ड्राई फ्रूट",3],["organic","🌾","Organic & health foods","ఆర్గానిక్ & ఆరోగ్య ఆహారం","ऑर्गेनिक और हेल्दी फूड",2],["baby","🍼","Baby care","బేబీ కేర్","बेबी केयर",3],["pharmacy","💊","Health & medicines","ఆరోగ్యం & మందులు","स्वास्थ्य और दवाइयाँ",3],["clean","🧹","Cleaning & detergents","క్లీనింగ్ & డిటర్జెంట్","सफाई और डिटर्जेंट",6],["stationery","✏️","Stationery & books","స్టేషనరీ & పుస్తకాలు","स्टेशनरी और किताबें",3],["bags","🧳","Bags & luggage","బ్యాగులు & లగేజ్","बैग और सामान",3],["toys","🧸","Toys & games","బొమ్మలు & ఆటలు","खिलौने और खेल",3],["furniture","🛋️","Home & furniture","ఇంటి సామాగ్రి & ఫర్నిచర్","घर और फर्नीचर",4],["hardware","🔧","Hardware & electricals","హార్డ్‌వేర్ & ఎలక్ట్రికల్","हार्डवेयर और बिजली",3],["pooja","🪔","Pooja items","పూజా సామాగ్రి","पूजा सामग्री",3],["pet","🐕","Pet care","పెంపుడు జంతువుల సామాగ్రి","पालतू जानवरों का सामान",2],["garden","🌱","Garden & plants","తోట & మొక్కలు","बाग़ और पौधे",2],["jewel","💍","Jewellery & accessories","నగలు & ఫ్యాషన్","ज्वेलरी और फैशन",3],["kids","🧦","Kids wear & innerwear","పిల్లల బట్టలు & ఇన్నర్‌వేర్","बच्चों के कपड़े और इनरवियर",4],["sports","🏏","Sports & fitness","క్రీడలు & ఫిట్‌నెస్","खेल और फिटनेस",3],["auto","🏍️","Auto accessories","ఆటో యాక్సెసరీస్","ऑटो सामान",2],["gifts","🎁","Gifts & cards","గిఫ్ట్‌లు & కార్డులు","गिफ्ट और कार्ड",2],["services","💳","Services (bill pay, photocopy)","సర్వీసులు","सेवाएँ (बिल, फोटोकॉपी)",2]];
+const ALIAS={grocery:["grocery","kirana","కిరాణా","किराना"],bakery:["chapati","chapathi","roti","bakery","చపాతీ","చపాతి","బేకరీ","चपाती","बेकरी"],veg:["vegetable","veggie","fruit","కూరగాయ","పండ్ల","సబ్జీ","सब्ज़ी","सब्जी","फल"],dairy:["milk","dairy","curd","పాలు","పెరుగు","दूध","डेयरी"],dress:["dress","cloth","shirt","saree","బట్ట","డ్రెస్","చీర","कपड़े","कपड़ा"],shoes:["shoe","footwear","chappal","చెప్పు","చెప్పుల","బూట్","जूते","जूता","चप्पल"],elec:["electronic","mobile","tv","ఎలక్ట్రానిక్","మొబైల్","इलेक्ट्रॉनिक","मोबाइल"],care:["soap","shampoo","cosmetic","సబ్బు","షాంపూ","साबुन","शैम्पू"],kitchen:["kitchen","vessel","వంటిం","రసోయి","रसोई","बर्तन"],meat:["meat","fish","chicken","mutton","egg","మాంసం","చేప","मांस","मछली"],frozen:["frozen","ice cream","icecream","ఐస్ క్రీం","आइसक्रीम"],snacks:["snack","sweet","namkeen","స్వీట్","మిఠాయి","मिठाई"],drinks:["drinks","juice","cold drink","జ్యూస్","जूस"],liquor:["beer","wine","liquor","బీర్","वाइन","बीयर"],dryfruit:["dry fruit","nuts","almond","cashew","డ్రై ఫ్రూట్","मेवे"],organic:["organic","health food","ఆర్గానిక్","ऑर्गेनिक"],baby:["baby","diaper","బేబీ","बेबी"],pharmacy:["medicine","pharmacy","tablet","మందు","दवा"],clean:["cleaning","detergent","cleaner","సఫాయి","सफाई"],stationery:["stationery","notebook","books","స్టేషనరీ","किताब"],bags:["bags","luggage","suitcase","బ్యాగ్","बैग"],toys:["toy","బొమ్మ","खिलौन"],furniture:["furniture","sofa","mattress","ఫర్నిచర్","फर्नीचर"],hardware:["hardware","electrical","bulb","హార్డ్‌వేర్","हार्डवेयर"],pooja:["pooja","puja","agarbatti","పూజ","पूजा"],pet:["pet food","pet care","dog food","పెట్","पालतू"],garden:["garden","plants","తోట","बाग"],jewel:["jewel","ornament","నగల","ज्वेलरी"],kids:["kids","innerwear","children","పిల్లల","बच्चों"],sports:["sports","fitness","gym","క్రీడ","खेल"],auto:["auto access","bike","helmet","ఆటో","ऑटो"],gifts:["gift","గిఫ్ట్","गिफ्ट"],services:["services","bill pay","photocopy","recharge","సర్వీస్","सेवा"]};
+function U(){if(U.k===data.S.count&&U.T===T&&U.v)return U.v;U.k=data.S.count;U.T=T;const r=rng(555+data.S.count),ds=(data.S.count===1?[0,3,7,1]:UD.map((_,i)=>i)).map(i=>UD[i]),tw=sum(ds,x=>x[5]);
+ U.v=ds.map(d=>{const sh=d[5]/tw,s=T.today*sh*(.9+r()*.2),y=T.yest*sh*(.9+r()*.2),ch=pct(s,y),low=Math.floor(r()*r()*9),gap=r()<.25?-Math.round((150+r()*400)/10)*10:0,cust=Math.max(2,Math.round(T.bills*sh*.12+r()*6));
+  return{id:d[0],ic:d[1],n:[d[2],d[3],d[4]],sh,s,y,ch,low,gap,cust,staff:Math.max(1,Math.round(sh*data.S.count*3)),k:gap<=-300?"cash":ch<=-12?"slow":low>=6?"stock":"ok"};});const fs=T.today/sum(U.v,x=>x.s),fy=T.yest/sum(U.v,x=>x.y);U.v.forEach(x=>{x.s*=fs;x.y*=fy;x.ch=pct(x.s,x.y);x.k=x.gap<=-300?"cash":x.ch<=-12?"slow":x.low>=6?"stock":"ok";});return U.v;}
+const un=(u)=>u.n[lg()],stt=(u)=>({ok:["good",say("Good","బాగుంది","अच्छा")],stock:["watch",say("Stock low","స్టాక్ తక్కువ","स्टॉक कम")],slow:["check",say("Sales low","అమ్మకాలు తక్కువ","बिक्री कम")],cash:["check",say("Cash short","నగదు తక్కువ","नकद कम")]})[u.k];
+const note=(u)=>({ok:say("Selling well today.","ఈ రోజు బాగా అమ్ముడవుతోంది.","आज अच्छी बिक्री हो रही है।"),slow:say("Sales are low today. Please check the shelves and the staff.","ఈ రోజు అమ్మకాలు తక్కువగా ఉన్నాయి. అల్మారాలు, సిబ్బందిని చూడండి.","आज बिक्री कम है। शेल्फ और स्टाफ देखें।"),stock:say(`${u.low} items are almost finished. Order them now.`,`${u.low} వస్తువులు దాదాపు అయిపోయాయి. ఇప్పుడే ఆర్డర్ చేయండి.`,`${u.low} सामान लगभग खत्म हैं। अभी ऑर्डर करें।`),cash:say(`Cash at this counter is ${inr(-u.gap)} less than the bills. Please count again.`,`ఈ కౌంటర్‌లో నగదు బిల్లుల కంటే ${inr(-u.gap)} తక్కువ ఉంది. మళ్లీ లెక్కించండి.`,`इस काउंटर पर नकद बिल से ${inr(-u.gap)} कम है। दोबारा गिनें।`)})[u.k];
+const mny=(n)=>n>=1e5?(n/1e5).toFixed(1)+" "+say("lakh rupees","లక్షల రూపాయలు","लाख रुपये"):num(n)+" "+say("rupees","రూపాయలు","रुपये");
+const HW=[2,4,6,7,6,5,5,6,7,9,10,9,6,3],hnow=()=>Math.min(21,Math.max(8,new Date().getHours())),fh=(h)=>h===12?"12p":h>12?(h-12)+"p":h+"a";
+const hours=(total)=>{const n=hnow()-7,sw=sum(HW.slice(0,n));return HW.slice(0,n).map((w,i)=>({label:fh(8+i),v:total*w/sw,hot:i===n-1,tip:fh(8+i)}));};
+
+/* ---------- Voice ---------- */
+const LC=["en-IN","te-IN","hi-IN","ta-IN","kn-IN"],toast=(t)=>{const e=$("toast");e.textContent=t;e.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>e.hidden=true,7000);};
+function speak(txt){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(txt.replace(/₹/g,""));u.lang=LC[["en","te","hi","ta","kn"].indexOf(st.lang||"en")];const v=speechSynthesis.getVoices().find(v=>v.lang.replace("_","-").toLowerCase().startsWith(u.lang.slice(0,2)));if(v)u.voice=v;else if(u.lang!=="en-IN")toast(say("","ఈ ఫోన్‌లో తెలుగు వాయిస్ లేదు. సెట్టింగ్స్‌లో 'Google Text-to-speech' లో తెలుగు డౌన్‌లోడ్ చేయండి.","इस फोन में हिंदी आवाज़ नहीं है। सेटिंग्स में Google Text-to-speech में हिंदी डाउनलोड करें।"));speechSynthesis.speak(u);}catch(e){}}
+function listen(cb){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toast(say("This browser cannot listen. Please use Chrome, or tap a question.","ఈ బ్రౌజర్ వినలేదు. Chrome వాడండి లేదా ప్రశ్నను నొక్కండి.","यह ब्राउज़र सुन नहीं सकता। Chrome इस्तेमाल करें या सवाल दबाएँ।"));return;}
+ const r=new SR();r.lang=LC[["en","te","hi","ta","kn"].indexOf(st.lang||"en")];r.onstart=()=>document.body.classList.add("hear");r.onend=()=>document.body.classList.remove("hear");r.onresult=e=>cb(e.results[0][0].transcript);r.onerror=()=>toast(say("Microphone not allowed. Allow it in the browser, or tap a question.","మైక్రోఫోన్ అనుమతి లేదు. బ్రౌజర్‌లో అనుమతించండి లేదా ప్రశ్నను నొక్కండి.","माइक की अनुमति नहीं है। ब्राउज़र में अनुमति दें या सवाल दबाएँ।"));try{r.start();}catch(e){}}
+
+/* ---------- Assistant brain: understands English, Telugu and Hindi words ---------- */
+const has=(s,a)=>a.some(w=>s.includes(w));
+function khataSum(){const r=rng(9*131+data.S.count),K=Math.max(1,Math.sqrt(data.S.count));let t=0,l=0,c=0;for(let i=0;i<14;i++){const o=Math.round((800+r()*9000)*K/10)*10,d=Math.round(r()*75);t+=o;if(d>30){l+=o;c++;}}return{t,l,c};}
+function ans(q){const _b=window.roleBlock&&window.roleBlock(q);if(_b)return{t:_b};const s=q.toLowerCase(),us=U(),by=[...us].sort((a,b)=>b.s-a.s),need=us.filter(u=>u.k!=="ok");
+ const hit=us.find(u=>has(s,ALIAS[u.id]));
+ if(hit){const a=stt(hit);return{t:say(`${un(hit)}: sales so far today ${mny(hit.s)}, ${Math.abs(hit.ch).toFixed(0)} percent ${hit.ch>=0?"more":"less"} than yesterday. ${hit.cust} customers inside now. ${note(hit)}`,`${un(hit)}: ఈ రోజు ఇప్పటి వరకు ${mny(hit.s)} అమ్మకం, నిన్నటి కంటే ${Math.abs(hit.ch).toFixed(0)} శాతం ${hit.ch>=0?"ఎక్కువ":"తక్కువ"}. ఇప్పుడు ${hit.cust} మంది కస్టమర్లు ఉన్నారు. ${note(hit)}`,`${un(hit)}: आज अब तक ${mny(hit.s)} की बिक्री, कल से ${Math.abs(hit.ch).toFixed(0)} प्रतिशत ${hit.ch>=0?"ज़्यादा":"कम"}। अभी ${hit.cust} ग्राहक हैं। ${note(hit)}`),u:hit.id};}
+ if(has(s,["cash","counter","drawer","నగద","కౌంటర్","క్యాష్","नकद","काउंटर"])){const c=us.filter(u=>u.gap<0);return{t:c.length?say(`Cash is short at: ${c.map(u=>un(u)+" ("+inr(-u.gap)+")").join(", ")}. Please count again.`,`ఇక్కడ నగదు తక్కువగా ఉంది: ${c.map(u=>un(u)+" ("+inr(-u.gap)+")").join(", ")}. మళ్లీ లెక్కించండి.`,`यहाँ नकद कम है: ${c.map(u=>un(u)+" ("+inr(-u.gap)+")").join(", ")}। दोबारा गिनें।`):say("Cash matches the bills at every counter.","అన్ని కౌంటర్లలో నగదు బిల్లులకు సరిపోతోంది.","हर काउंटर पर नकद बिल से मेल खाता है।"),tab:"staff"};}
+ if(has(s,["stock","order","finish","స్టాక్","ఆర్డర్","అయిపో","स्टॉक","ऑर्डर","खत्म"])){const l=us.filter(u=>u.low>0).sort((a,b)=>b.low-a.low).slice(0,4);return{t:say(`Order now for: ${l.map(u=>un(u)+" ("+u.low+" items)").join(", ")}. The app has already written the orders for you.`,`ఇవి ఆర్డర్ చేయండి: ${l.map(u=>un(u)+" ("+u.low+" వస్తువులు)").join(", ")}. ఆర్డర్ల జాబితా ఇప్పటికే తయారుగా ఉంది.`,`इनका ऑर्डर करें: ${l.map(u=>un(u)+" ("+u.low+" सामान)").join(", ")}। ऑर्डर की सूची तैयार है।`),tab:"orders"};}
+ if(has(s,["credit","khata","owe","అప్పు","ఖాతా","ఇవ్వాల","उधार","खाता"])){const k=khataSum();return{t:say(`Customers owe you about ${mny(k.t)}. ${k.c} customers are more than 30 days late. Send them a reminder.`,`కస్టమర్లు మీకు సుమారు ${mny(k.t)} ఇవ్వాలి. ${k.c} మంది 30 రోజులకు పైగా ఆలస్యం చేశారు. వారికి రిమైండర్ పంపండి.`,`ग्राहकों पर लगभग ${mny(k.t)} बकाया है। ${k.c} ग्राहक 30 दिन से ज़्यादा लेट हैं। उन्हें याद दिलाएँ।`),tab:"khata"};}
+ if(has(s,["expiry","expire","date","waste","గడువు","ఎక్స్","వృథా","एक्सपायरी","बर्बाद"]))return{t:say(`Goods that expire soon should be sold first and marked down. About ${mny(M2()*.009)} was lost to wastage in the last 30 days.`,`గడువు దగ్గరపడిన సరుకును ముందు అమ్మండి, ధర తగ్గించండి. గత 30 రోజుల్లో సుమారు ${mny(M2()*.009)} వృథా అయింది.`,`एक्सपायरी वाले सामान को पहले बेचें और दाम घटाएँ। पिछले 30 दिनों में लगभग ${mny(M2()*.009)} बर्बाद हुआ।`),tab:"expiry"};
+ if(has(s,["profit","earn","లాభ","సంపాద","मुनाफा","कमाई"]))return{t:say(`Today you probably earned about ${mny(T.profit)}. This is before rent and salaries.`,`ఈ రోజు మీకు సుమారు ${mny(T.profit)} లాభం వచ్చి ఉంటుంది. ఇది అద్దె, జీతాలు తీయక ముందు.`,`आज आपको लगभग ${mny(T.profit)} मुनाफा हुआ होगा। यह किराया और वेतन से पहले का है।`),tab:"profit"};
+ if(has(s,["weak","slow","needs","check","look","problem","తక్కువ","చూడాల","చూడండి","సమస్య","कम","देखना","देखें","समस्या"])){return{t:need.length?say(`These units need you: ${need.map(u=>un(u)+" - "+note(u)).join(" ")}`,`ఈ యూనిట్లను మీరు చూడాలి: ${need.map(u=>un(u)+" - "+note(u)).join(" ")}`,`इन यूनिट को देखना है: ${need.map(u=>un(u)+" - "+note(u)).join(" ")}`):say("All units are fine. Nothing needs you right now.","అన్ని యూనిట్లు బాగున్నాయి. ఇప్పుడు మీరు ఏమీ చూడనవసరం లేదు.","सभी यूनिट ठीक हैं। अभी कुछ देखने की ज़रूरत नहीं।")};}
+ if(has(s,["best","top","most","ఎక్కువ","బాగా","సూపర్","सबसे","ज़्यादा"]))return{t:say(`The best unit today is ${un(by[0])} with ${mny(by[0].s)}, then ${un(by[1])}.`,`ఈ రోజు ఉత్తమ యూనిట్ ${un(by[0])}, ${mny(by[0].s)} అమ్మకం. తర్వాత ${un(by[1])}.`,`आज सबसे अच्छी यूनिट ${un(by[0])} है, ${mny(by[0].s)} की बिक्री। फिर ${un(by[1])}।`)};
+ if(has(s,["shop","how is","status","all","షాప్","ఎలా ఉంది","दुकान","कैसी","कैसा"]))return{t:summary()};
+ if(has(s,["sale","money","today","received","అమ్మక","డబ్బు","ఈ రోజు","बिक्री","पैसा","आज"]))return{t:say(`Today so far you received ${mny(T.today)} from ${num(T.bills)} bills. That is ${Math.abs(pct(T.today,T.yest)).toFixed(0)} percent ${T.today>=T.yest?"more":"less"} than yesterday.`,`ఈ రోజు ఇప్పటి వరకు ${num(T.bills)} బిల్లుల నుంచి ${mny(T.today)} వచ్చింది. ఇది నిన్నటి కంటే ${Math.abs(pct(T.today,T.yest)).toFixed(0)} శాతం ${T.today>=T.yest?"ఎక్కువ":"తక్కువ"}.`,`आज अब तक ${num(T.bills)} बिलों से ${mny(T.today)} आया। यह कल से ${Math.abs(pct(T.today,T.yest)).toFixed(0)} प्रतिशत ${T.today>=T.yest?"ज़्यादा":"कम"} है।`)};
+ return{t:say("Sorry, I did not understand. Try: how is my shop, how much sales today, is cash correct, what to order, or the name of a unit like chapati unit.","క్షమించండి, అర్థం కాలేదు. ఇలా అడగండి: నా షాప్ ఎలా ఉంది, ఈ రోజు అమ్మకాలు ఎంత, నగదు సరిగ్గా ఉందా, ఏం ఆర్డర్ చేయాలి, లేదా చపాతీ యూనిట్ వంటి యూనిట్ పేరు.","माफ़ कीजिए, समझ नहीं आया। ऐसे पूछें: मेरी दुकान कैसी है, आज की बिक्री, नकद ठीक है, क्या ऑर्डर करें, या चपाती यूनिट जैसा यूनिट का नाम।")};}
+const M2=()=>sumRange(N-30,N-1);
+function summary(){const us=U(),ok=us.filter(u=>u.k==="ok").length,need=us.filter(u=>u.k!=="ok");return say(`Today so far you received ${mny(T.today)}. ${ok} of ${us.length} units are doing well. ${need.length?need.length+" need your look: "+need.map(un).join(", ")+".":"Nothing needs you now."}`,`ఈ రోజు ఇప్పటి వరకు ${mny(T.today)} వచ్చింది. ${us.length} యూనిట్లలో ${ok} బాగున్నాయి. ${need.length?need.length+" యూనిట్లను మీరు చూడాలి: "+need.map(un).join(", ")+".":"ఇప్పుడు మీరు ఏమీ చూడనవసరం లేదు."}`,`आज अब तक ${mny(T.today)} आया। ${us.length} में से ${ok} यूनिट अच्छी चल रही हैं। ${need.length?need.length+" को देखना है: "+need.map(un).join(", ")+"।":"अभी कुछ देखने की ज़रूरत नहीं।"}`);}
+
+/* ---------- Screens ---------- */
+const sp=(txt)=>`<button class="btn" data-say="${esc(txt)}">🔊 ${say("Listen","వినండి","सुनें")}</button>`;
+function homeScr(){
+ if(st.unit&&!U().some(x=>x.id===st.unit))st.unit=null;
+ if(st.unit){const u=U().find(x=>x.id===st.unit),a=stt(u),tx=un(u)+". "+note(u),acts=u.k==="ok"?[say("Nothing to do. Keep it up.","ఏమీ చేయనవసరం లేదు. ఇలాగే కొనసాగించండి.","कुछ करने की ज़रूरत नहीं।")]:u.k==="stock"?[say("Open Orders and press Approve.","ఆర్డర్లు తెరిచి 'ఆమోదించు' నొక్కండి.","ऑर्डर खोलकर 'मंज़ूर' दबाएँ।")]:u.k==="cash"?[say("Ask the cashier to count again.","క్యాషియర్‌ను మళ్లీ లెక్కించమనండి.","कैशियर से दोबारा गिनने को कहें।"),say("Look at cancelled bills.","రద్దైన బిల్లులు చూడండి.","रद्द बिल देखें।")]:[say("Walk to the unit and check the shelves.","యూనిట్ దగ్గరకు వెళ్లి అల్మారాలు చూడండి.","यूनिट पर जाकर शेल्फ देखें।"),say("Ask the staff if anything is wrong.","సిబ్బందిని ఏమైనా సమస్య ఉందా అని అడగండి.","स्टाफ से पूछें कोई समस्या है क्या।")];
+  setTab(`<button class="btn" id="back">← ${say("All units","అన్ని యూనిట్లు","सभी यूनिट")}</button><section class="box"><h2>${u.ic} ${esc(un(u))} <span class="pill ${a[0]}">${a[1]}</span></h2><p class="say">${esc(note(u))}</p>${sp(tx)} <button class="btn" data-ask="${esc(un(u))}">🎤 ${say("Ask about this","దీని గురించి అడగండి","इसके बारे में पूछें")}</button></section>
+  <div class="tiles">${tile(say("Sales so far today","ఈ రోజు ఇప్పటి వరకు అమ్మకం","आज अब तक बिक्री"),inr(u.s),`<span class="${cls(u.ch)}">${u.ch>=0?"▲":"▼"} ${Math.abs(u.ch).toFixed(0)}% ${say("vs yesterday","నిన్నటితో","कल से")}</span>`,"")}${tile(say("Customers inside now","ఇప్పుడు లోపల కస్టమర్లు","अभी अंदर ग्राहक"),`<span data-cust="${u.id}">${u.cust}</span>`,"","")}${tile(say("Staff here","ఇక్కడ సిబ్బంది","यहाँ स्टाफ"),u.staff,"","")}${tile(say("Items almost finished","దాదాపు అయిపోయిన వస్తువులు","लगभग खत्म सामान"),u.low,"","")}</div>
+  <section class="box"><h2>${say("Sales hour by hour today","ఈ రోజు గంట గంటకు అమ్మకాలు","आज घंटे-घंटे की बिक्री")}</h2>${barChart(hours(u.s),{aria:"hourly"})}</section><section class="box"><h2>${say("What to do","ఏం చేయాలి","क्या करें")}</h2><ul class="plain">${acts.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`);
+  $("back").onclick=()=>{st.unit=null;homeScr();};return;}
+ const us=U(),need=us.filter(u=>u.k!=="ok"),ok=us.length-need.length;
+ setTab(`<section class="box"><h2>${say("Your whole shop, one look","మీ షాప్ మొత్తం, ఒక్క చూపులో","आपकी पूरी दुकान, एक नज़र में")}</h2><p class="say">${esc(summary())}</p>${sp(summary())} <button class="btn go" data-talk="1">🎤 ${say("Talk to assistant","అసిస్టెంట్‌తో మాట్లాడండి","असिस्टेंट से बात करें")}</button><p class="note">${say("Tap any card to see that unit. Tap 🔊 to hear it. Tap 🎤 and speak your question.","ఏదైనా కార్డ్ నొక్కితే ఆ యూనిట్ కనిపిస్తుంది. 🔊 నొక్కితే వినవచ్చు. 🎤 నొక్కి మీ ప్రశ్న చెప్పండి.","किसी भी कार्ड को दबाएँ। 🔊 दबाकर सुनें। 🎤 दबाकर सवाल बोलें।")}</p></section>
+  <div class="tiles">${tile(say("Money received so far today","ఈ రోజు ఇప్పటి వరకు వచ్చిన డబ్బు","आज अब तक आया पैसा"),inr(T.today),`<span class="${cls(pct(T.today,T.yest))}">${pct(T.today,T.yest)>=0?"▲":"▼"} ${Math.abs(pct(T.today,T.yest)).toFixed(0)}% ${say("vs yesterday","నిన్నటితో","कल से")}</span>`,"")}${tile(say("Units doing well","బాగున్న యూనిట్లు","अच्छी चल रही यूनिट"),ok+" / "+us.length,"","")}${tile(say("Customers in shop now","ఇప్పుడు షాప్‌లో కస్టమర్లు","अभी दुकान में ग्राहक"),`<span id="custtot">${sum(us,u=>u.cust)}</span>`,`<span class="flat" id="clock"></span>`,"")}</div>
+  <div class="ucards">${us.map(u=>{const a=stt(u);return `<button class="ucard" data-u="${u.id}"><span class="ic">${u.ic}</span><b>${esc(un(u))}</b><span class="big2">${inr(u.s)}</span><span class="${cls(u.ch)}">${u.ch>=0?"▲":"▼"} ${Math.abs(u.ch).toFixed(0)}%</span><span class="pill ${a[0]}">${a[1]}</span><span class="note">${esc(note(u))}</span><span class="note">👥 <b data-cust="${u.id}">${u.cust}</b> ${say("inside now","లోపల ఉన్నారు","अंदर हैं")}</span></button>`}).join("")}</div>
+  <section class="box"><h2>${say("Whole shop, hour by hour","షాప్ మొత్తం, గంట గంటకు","पूरी दुకान, घंटे-घंटे")}</h2>${barChart(hours(T.today),{aria:"hourly"})}<p class="legend">${say("Orange bar = this hour.","నారింజ రంగు = ఈ గంట.","नारंगी = यह घंटा।")}</p></section>`);
+ document.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{st.unit=b.dataset.u;homeScr();window.scrollTo(0,0);});}
+
+function talkScr(){
+ st.tc=st.tc||[];const Q=[["How is my shop today?","ఈ రోజు నా షాప్ ఎలా ఉంది?","आज मेरी दुकान कैसी है?"],["How much sales today?","ఈ రోజు అమ్మకాలు ఎంత?","आज की बिक्री कितनी?"],["Which unit needs me?","ఏ యూనిట్‌ను చూడాలి?","किस यूनिट को देखना है?"],["Is the cash correct?","నగదు సరిగ్గా ఉందా?","नकद ठीक है?"],["What should I order?","ఏం ఆర్డర్ చేయాలి?","क्या ऑर्डर करें?"],["How is the chapati unit?","చపాతీ యూనిట్ ఎలా ఉంది?","चपाती यूनिट कैसी है?"],["Who owes me money?","ఎవరు నాకు అప్పు ఇవ్వాలి?","मुझे कौन पैसे देगा?"]];
+ setTab(`<section class="box"><h2>${say("Talk to your assistant","మీ అసిస్టెంట్‌తో మాట్లాడండి","अपने असिस्टेंट से बात करें")}</h2><p class="note">${say("Press the big microphone and speak. Or tap a question below. The answer is read aloud.","పెద్ద మైక్ నొక్కి మాట్లాడండి. లేదా కింద ఉన్న ప్రశ్న నొక్కండి. సమాధానం వినిపిస్తుంది.","बड़ा माइक दबाकर बोलें। या नीचे सवाल दबाएँ। जवाब बोलकर सुनाया जाएगा।")}</p>
+ <button class="micbtn" id="mic">🎤<span>${say("Press and speak","నొక్కి మాట్లాడండి","दबाकर बोलें")}</span></button>
+ <div class="chips bigchips">${Q.map((q,i)=>`<button data-q="${i}">${esc(q[lg()])}</button>`).join("")}</div>
+ <form class="askrow" id="tf"><input id="ti" placeholder="${say("Or type here","లేదా ఇక్కడ టైప్ చేయండి","या यहाँ टाइप करें")}" autocomplete="off"><button class="btn go" type="submit">${say("Ask","అడగండి","पूछें")}</button></form>
+ <label style="display:flex;gap:8px;margin-top:10px"><input type="checkbox" id="vo" ${st.vo===false?"":"checked"}> ${say("Read answers aloud","సమాధానాలు వినిపించు","जवाब बोलकर सुनाएँ")}</label></section>
+ <div class="chat">${st.tc.map(m=>`<div class="msg q">${esc(m.q)}</div><div class="msg a">${esc(m.a.t)}<div class="how">${sp(m.a.t)}${m.a.tab?` <button class="btn" data-go="${m.a.tab}">${say("Open screen","స్క్రీన్ తెరవండి","स्क्रीन खोलें")}</button>`:""}</div></div>`).join("")}</div>`);
+ const ask=(q)=>{if(!q.trim())return;const a=ans(q);if(a.u){st.unit=a.u;}st.tc.push({q,a});talkScr();if(st.vo!==false)speak(a.t);window.scrollTo(0,document.body.scrollHeight);};
+ $("mic").onclick=()=>listen(ask);document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>ask(Q[+b.dataset.q][lg()]));
+ $("tf").onsubmit=e=>{e.preventDefault();ask($("ti").value);};$("vo").onchange=e=>{st.vo=e.target.checked;};
+ if(st.pre){const p=st.pre;st.pre=null;ask(p);}}
+
+/* ---------- Vertical menu, banner, big mic button ---------- */
+const NAV=[["Main","ప్రధాన","मुख्य",[["home","🏠","All units","అన్ని యూనిట్లు","सभी यूनिट"],["talk","🎤","Talk to assistant","మాట్లాడండి","बात करें"],["overview","📋","Today's summary","ఈ రోజు సారాంశం","आज का सार"],["counter","🧾","My counter","నా కౌంటర్","मेरा काउंटर"],["access","🔐","Access & roles","యాక్సెస్ & పాత్రలు","एक्सेस और भूमिकाएँ"]]],["Money","డబ్బు","पैसा",[["staff","💵","Cashiers & cash","క్యాషియర్లు & నగదు","कैशियर और नकद"],["profit","📈","Profit & costs","లాభం & ఖర్చులు","मुनाफा और खर्च"],["khata","📒","Credit (Khata)","అప్పు (ఖాతా)","उधार (खाता)"]]],["Goods","సరుకు","सामान",[["stock","📦","Stock","స్టాక్","स्टॉक"],["orders","🧾","Orders to suppliers","సరఫరాదారులకు ఆర్డర్లు","सप्लायर को ऑर्डर"],["expiry","⏳","Expiry & wastage","గడువు & వృథా","एक्सपायरी"],["brands","🔎","Search brands","బ్రాండ్ వెతకండి","ब्रांड खोजें"],["suppliers","🚚","Suppliers","సరఫరాదారులు","सप्लायर"],["price","🏷️","Price watch","ధరల పర్యవేక్షణ","भाव पर नज़र"]]],["More reports","మరిన్ని రిపోర్టులు","और रिपोर्ट",[["history","📊","Sales history","అమ్మకాల చరిత్ర","बिक्री का इतिहास"],["forecast","🔮","Forecast","అంచనా","पूर्वानुमान"],["regions","🌾","Rice & dal sources","బియ్యం, పప్పు మూలాలు","चावल-दाल के स्रोत"],["offers","🎁","Offers & festivals","ఆఫర్లు & పండుగలు","ऑफर और त्योहार"],["customers","👥","Customers","కస్టమర్లు","ग्राहक"],["routine","⏱️","Owner's day","యజమాని రోజు","मालिक का दिन"],["assistant","💬","Old assistant","పాత అసిస్టెంట్","पुराना असिस्टेंट"]]]];
+function chrome(){const l=lg(),side=$("side"),ck=l+"|"+st.tab+"|"+(st.role||"");if(chrome.k===ck&&side.innerHTML)return;chrome.k=ck;
+ side.innerHTML=NAV.map((g,gi)=>{const items=g[3].filter(i=>!window.okTab||window.okTab(i[0])).map(i=>`<button data-n="${i[0]}"${st.tab===i[0]?' aria-current="page"':""}><span>${i[1]}</span><span>${i[2+l]||i[2]}</span></button>`).join("");if(!items)return"";return gi<3?`<h4>${g[l]||g[0]}</h4>${items}`:`<details${g[3].some(i=>i[0]===st.tab)?" open":""}><summary>${g[l]||g[0]}</summary>${items}</details>`;}).join("");
+ side.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{st.tab=b.dataset.n;st.unit=null;try{location.hash=st.tab;}catch(e){}side.classList.remove("open");render();window.scrollTo(0,0);});
+ $("menu").textContent="☰ "+say("Menu","మెనూ","मेन्यू");$("fabl").textContent=say("Ask","అడగండి","पूछें");
+ const sm=document.querySelector(".sample");sm.textContent=say("SAMPLE DATA: every number here is made up to show how it works.","నమూనా డేటా: ఇక్కడ ఉన్న సంఖ్యలన్నీ ఎలా పనిచేస్తుందో చూపడానికి కల్పించినవి.","नमूना डेटा: यहाँ के सारे आंकड़े सिर्फ दिखाने के लिए हैं।");}
+
+/* ---------- Wire in ---------- */
+const css=document.createElement("style");css.textContent=`.tabs{display:none!important}.sample{font-size:.8em;padding:5px 12px}.layout{display:grid;grid-template-columns:16rem minmax(0,1fr);gap:18px;align-items:start}#side{position:sticky;top:10px;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:10px;display:grid;gap:2px;max-height:calc(100vh - 20px);overflow:auto}#side h4{margin:10px 8px 4px;font-size:.72em;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}#side summary{margin:10px 8px 4px;cursor:pointer;font-size:.72em;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}#side button{display:flex;gap:10px;text-align:start;background:none;border:0;border-radius:10px;padding:10px 12px;cursor:pointer;width:100%}#side button:hover{background:var(--panel-2)}#side button[aria-current=page]{background:var(--accent);color:var(--accent-ink);font-weight:700}#menu{display:none}.ucards{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px}.ucard{display:grid;gap:4px;justify-items:start;text-align:start;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer}.ucard:hover{border-color:var(--accent)}.ucard .ic{font-size:2.2rem}.big2{font-size:1.5rem;font-weight:700}.micbtn{display:grid;justify-items:center;gap:4px;margin:12px auto;width:9rem;height:9rem;border-radius:50%;border:0;background:var(--accent);color:var(--accent-ink);font-size:3rem;cursor:pointer}.micbtn span{font-size:.3em;font-weight:700}body.hear .micbtn,body.hear #fab{animation:pulse 1s infinite}@keyframes pulse{50%{transform:scale(1.08)}}.bigchips button{padding:14px 18px;font-size:1.05em}#fab{position:fixed;right:16px;bottom:16px;z-index:5;display:flex;gap:6px;align-items:center;border:0;border-radius:999px;background:var(--accent);color:var(--accent-ink);padding:14px 20px;font-size:1.1rem;font-weight:700;cursor:pointer;box-shadow:0 4px 14px #0006}#toast{position:fixed;left:16px;right:16px;bottom:84px;z-index:6;background:var(--check-bg);color:var(--check);border-radius:12px;padding:12px 16px}@media(max-width:860px){.layout{grid-template-columns:1fr}#side{display:none;position:static;max-height:none}#side.open{display:grid}#menu{display:inline-flex;margin-bottom:8px}}`;document.head.appendChild(css);
+const main=$("tab"),lay=document.createElement("div");lay.className="layout";const side=document.createElement("nav");side.id="side";const col=document.createElement("div");col.className="stack";col.innerHTML='<button class="btn" id="menu" type="button"></button>';main.parentNode.insertBefore(lay,main);lay.append(side,col);col.appendChild(main);
+const fab=document.createElement("button");fab.id="fab";fab.type="button";fab.innerHTML='🎤 <span id="fabl"></span>';const tz=document.createElement("div");tz.id="toast";tz.hidden=true;tz.setAttribute("role","status");document.body.append(fab,tz);
+$("menu").onclick=()=>side.classList.toggle("open");
+fab.onclick=()=>{st.tab="talk";render();setTimeout(()=>$("mic")&&$("mic").click(),50);};
+new MutationObserver(()=>{chrome();document.querySelectorAll("[data-say]").forEach(b=>b.onclick=()=>speak(b.dataset.say));document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>{st.tab=b.dataset.go;render();});document.querySelectorAll("[data-talk]").forEach(b=>b.onclick=()=>{st.tab="talk";render();});document.querySelectorAll("[data-ask]").forEach(b=>b.onclick=()=>{st.pre=b.dataset.ask;st.tab="talk";render();});}).observe(main,{childList:true,subtree:true});
+TABS.splice(0,0,["home","All units",homeScr],["talk","Talk",talkScr]);
+$("lang").addEventListener("change",()=>{render();});
+st.easy=true;if(!location.hash||!TABS.some(t=>t[0]===location.hash.slice(1)))st.tab="home";
+setInterval(()=>{const us=U();us.forEach(u=>{u.cust=Math.max(1,u.cust+Math.round((Math.random()-.5)*3));document.querySelectorAll(`[data-cust="${u.id}"]`).forEach(e=>e.textContent=u.cust);});const c=$("custtot");if(c)c.textContent=sum(us,u=>u.cust);const k=$("clock");if(k)k.textContent=say("Updated ","నవీకరణ ","अपडेट ")+new Date().toLocaleTimeString("en-IN");},8000);
+render();})();
+
+</script>
+<style>
+#gate{position:fixed;inset:0;z-index:50;background:var(--bg);overflow:auto;padding:max(20px,env(safe-area-inset-top)) 16px 40px}
+#gate .in{max-width:62rem;margin:0 auto;display:grid;gap:16px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:12px}
+.rcard{display:grid;gap:4px;justify-items:start;text-align:start;background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer}
+.rcard:hover{border-color:var(--accent)}.rcard .ic{font-size:2rem}
+.dn{width:6rem}body.r-hod #back{display:none}body.r-cashier #fab{display:none}
+</style>
+<div id="gate" role="dialog" aria-modal="true" aria-label="Choose who is signed in" hidden></div>
+<script>
+(function(){
+const ROLES={
+chairman:["Chairman / Owner","👑","*","Every branch, every number, every setting. Can see who may open what.","home"],
+finance:["Finance Manager","💰",["overview","history","profit","staff","khata","suppliers","orders","price","forecast","assistant"],"Money in all branches: sales, profit, cash, credit, supplier dues. Cannot change stock or offers.","overview"],
+branch:["Branch Manager","🏬",["home","talk","overview","staff","stock","orders","expiry","brands","customers","khata","routine"],"Only their own branch: sales, cash, stock, staff. No profit and no supplier dues.","overview"],
+hod:["Head of Department","🧑‍🍳",["home","talk","stock","expiry"],"Only their own department, for example the chapati unit.","home"],
+purchase:["Purchase & Stock Manager","📦",["stock","orders","suppliers","expiry","brands","price","regions","offers"],"Buying and stock only. No cash, no profit, no customer credit.","stock"],
+audit:["Auditor (view only)","🔍",["overview","staff","suppliers","expiry","khata"],"Looks at what needs checking. Cannot change or approve anything.","staff"],
+cashier:["Cashier (Counter)","🧾",["counter"],"Only their own counter: bills, cash count, a request to the manager.","counter"]};
+const UNITS=[["grocery","Grocery & staples"],["bakery","Chapati & bakery unit"],["veg","Vegetables & fruits"],["dairy","Milk & dairy"],["dress","Dress & clothing"],["shoes","Shoes & footwear"],["elec","Electronics & mobiles"],["care","Soaps, shampoo & cosmetics"],["kitchen","Kitchen & home items"],["meat","Meat & fish"],["frozen","Frozen & ice cream"],["snacks","Snacks & sweets"],["drinks","Drinks & juices"],["liquor","Beer & wine"],["dryfruit","Dry fruits & nuts"],["organic","Organic & health foods"],["baby","Baby care"],["pharmacy","Health & medicines"],["clean","Cleaning & detergents"],["stationery","Stationery & books"],["bags","Bags & luggage"],["toys","Toys & games"],["furniture","Home & furniture"],["hardware","Hardware & electricals"],["pooja","Pooja items"],["pet","Pet care"],["garden","Garden & plants"],["jewel","Jewellery & accessories"],["kids","Kids wear & innerwear"],["sports","Sports & fitness"],["auto","Auto accessories"],["gifts","Gifts & cards"],["services","Services (bill pay, photocopy)"]];
+const NARROW=["branch","hod","cashier"],g=$("gate");
+const stamp=()=>{const d=new Date();return d.toLocaleDateString("en-IN",{weekday:"long",day:"numeric",month:"short",year:"numeric"})+", "+d.toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit"});};
+window.okTab=(id)=>{const r=ROLES[st.role||"chairman"];return r[2]==="*"||r[2].includes(id);};
+window.roleBlock=(q)=>{const s=q.toLowerCase(),m=[[/profit|earn|లాభ|मुनाफ/,"profit"],[/credit|khata|owe|అప్పు|उधार/,"khata"],[/cash|నగద|नकद/,"staff"],[/supplier/,"suppliers"]].find(x=>x[0].test(s));return m&&!okTab(m[1])?"Your role cannot see this. Please ask the person who has access.":null;};
+
+/* scope: branch manager, head of department and cashier see one branch only */
+const P0=prepare;prepare=function(){P0();if(NARROW.includes(st.role)){const b=data.branches[Math.min(st.sb||0,data.branches.length-1)];data={...data,branches:[b]};T=totals();H=buildHistory();B=buildBrands();}};
+const R0=render;render=function(){const r=ROLES[st.role||"chairman"];if(!okTab(st.tab))st.tab=r[4];if(st.role==="hod"&&st.tab==="home")st.unit=st.su;
+ Object.keys(ROLES).forEach(k=>document.body.classList.toggle("r-"+k,st.role===k));R0();
+ if(st.role==="branch"&&st.tab==="overview"){const n=document.querySelector("#branches-box .note");if(n)n.textContent="Only your branch is shown.";}
+ if(st.role==="hod"&&(st.tab==="stock"||st.tab==="expiry"))$("tab").insertAdjacentHTML("afterbegin",'<p class="note">Sample shows every product. In the real app this list is limited to your department.</p>');};
+
+/* sign-in screen */
+function gate(step){g.hidden=false;
+ if(!step){st.role=null;prepare();g.innerHTML=`<div class="in"><div><h1>Owner <span class="acc">Control Room</span></h1><p class="sub">Choose who is signed in. Each role sees only what it needs. This is a sample sign-in; the real app asks for a password or phone code.</p></div><div class="rgrid">${Object.entries(ROLES).map(([k,r])=>`<button type="button" class="rcard" data-r="${k}"><span class="ic">${r[1]}</span><b>${r[0]}</b><span class="note">${r[3]}</span></button>`).join("")}</div></div>`;return;}
+ const r=ROLES[step];g.dataset.k=step;
+ g.innerHTML=`<div class="in"><div><button type="button" class="btn" id="gb">← Back</button></div><h2>${r[1]} ${r[0]}</h2><p class="sub">${r[3]}</p><div class="controls"><label>Branch<select id="gs">${data.branches.map((b,i)=>`<option value="${i}">${esc(b.name)}</option>`).join("")}</select></label>${step==="hod"?`<label>Department<select id="gu">${UNITS.map(u=>`<option value="${u[0]}">${u[1]}</option>`).join("")}</select></label>`:""}${step==="cashier"?`<label>Counter<select id="gc"><option>1</option><option>2</option></select></label>`:""}</div><div><button type="button" class="btn go" id="go">Open</button></div></div>`;}
+function enter(k){st.role=k;st.sb=+($("gs")&&$("gs").value)||0;st.sc=+($("gc")&&$("gc").value)||1;st.su=$("gu")?$("gu").value:null;st.cnt={};st.sent=null;prepare();
+ st.unit=k==="hod"?st.su:null;st.tab=ROLES[k][4];(st.log=st.log||[]).unshift(ROLES[k][0]+" signed in · "+stamp());g.hidden=true;chip();render();window.scrollTo(0,0);}
+g.addEventListener("click",e=>{const b=e.target.closest("[data-r]");if(b){const k=b.dataset.r;return NARROW.includes(k)?gate(k):enter(k);}if(e.target.closest("#go"))return enter(g.dataset.k);if(e.target.closest("#gb"))gate();});
+const ch=document.createElement("button");ch.type="button";ch.className="btn";ch.id="who";document.querySelector(".controls").appendChild(ch);ch.onclick=()=>gate();
+function chip(){const r=ROLES[st.role];ch.hidden=!r;ch.textContent=r?r[1]+" "+r[0]+" · Switch role":"";$("size").closest("label").hidden=!!st.role&&st.role!=="chairman";}
+
+/* cashier counter */
+function counter(){const b=data.branches[0],c=st.sc||1,sh=c===1?.6:.4,exp=Math.round(b.today*.35*sh/10)*10,bills=Math.round(b.bills*sh);st.cnt=st.cnt||{};
+ const D=[500,200,100,50,20,10],tot=sum(D,d=>d*(+st.cnt[d]||0))+(+st.cnt.c||0),has=Object.keys(st.cnt).length>0,diff=tot-exp;
+ setTab(`<section class="box"><h2>🧾 ${esc(b.name)} · Counter ${c}</h2><div class="tiles">${tile("Bills made today",num(bills),"","From this counter's till.")}${tile("Cash the bills say",inr(exp),"","What should be in the drawer.")}${tile("Counted by you",has?inr(tot):"—",has?`<span class="${Math.abs(diff)>=120?"down":"up"}">${diff===0?"Matches":(diff<0?"Short ":"Extra ")+inr(Math.abs(diff))}</span>`:"","Fill in the notes below.")}</div></section>
+ <section class="box"><h2>Count the drawer</h2><div class="controls">${D.map(d=>`<label>₹${d} notes<input class="dn" type="number" min="0" data-d="${d}" value="${st.cnt[d]||""}"></label>`).join("")}<label>Coins (₹)<input class="dn" type="number" min="0" data-d="c" value="${st.cnt.c||""}"></label></div>
+ <div class="pager"><button type="button" class="btn go" id="cs"${has?"":" disabled"}>Send closing count to manager</button>${st.sent?`<span class="pill good">${esc(st.sent)}</span>`:""}</div><p class="note">A difference is a reason to recount, not proof of a mistake. This role cannot see profit, other counters or supplier details.</p></section>
+ <section class="box"><h2>Ask the manager to cancel a bill</h2><div class="askrow"><input id="bn" placeholder="Bill number" autocomplete="off"><button type="button" class="btn" id="br">Send request</button></div><ul class="plain">${(st.req||[]).map(x=>`<li>${esc(x)}</li>`).join("")||'<li class="note">No requests yet.</li>'}</ul></section>`);
+ document.querySelectorAll("[data-d]").forEach(i=>i.addEventListener("change",()=>{st.cnt[i.dataset.d]=Math.max(0,+i.value||0);counter();}));
+ $("cs").onclick=()=>{st.sent="Sent "+stamp();counter();};
+ $("br").onclick=()=>{const v=$("bn").value.trim();if(v){(st.req=st.req||[]).unshift("Bill "+v+": cancel requested "+stamp()+". Waiting for manager.");counter();}};}
+
+/* access matrix (chairman) */
+function access(){const ks=Object.keys(ROLES);
+ setTab(`<p class="say">Who can open which screen. Branch Manager, Head of Department and Cashier also see only their own branch, department or counter.</p><section class="box"><div class="tbl"><table><thead><tr><th>Screen</th>${ks.map(k=>`<th class="n">${ROLES[k][1]} ${ROLES[k][0]}</th>`).join("")}</tr></thead><tbody>${TABS.map(t=>`<tr><td>${esc(t[1])}</td>${ks.map(k=>`<td class="n">${ROLES[k][2]==="*"||ROLES[k][2].includes(t[0])?'<span class="up">✓</span>':'<span class="flat">—</span>'}</td>`).join("")}</tr>`).join("")}</tbody></table></div></section><section class="box"><h2>Sign-in log (this session)</h2><ul class="plain">${(st.log||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></section>`);}
+TABS.push(["counter","My counter",counter],["access","Access & roles",access]);
+
+/* supplier review: past deals with date, day and time */
+const SH=(s)=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+function deals(s){const r=rng(SH(s.n)),ps=s.prod.split(",").map(x=>x.trim()),o=[];
+ for(let i=0;i<14;i++){const ago=Math.round(i*78+r()*60),d=new Date(TODAY.getTime()-ago*dayMs),ord=Math.round((60+r()*340)/10)*10,short=r()<Math.min(.8,s.short/100*3)?Math.round(ord*(.03+r()*.1)):0;d.setHours(9+Math.floor(r()*9),r()<.5?0:30);o.push({d,p:ps[i%ps.length],ord,got:ord-short,rate:Math.round(40+r()*160),paid:ago>60||r()<.4});}return o;}
+function panel(){const s=SUPPLIERS.find(x=>x.n===st.rv);if(!s)return;const D=deals(s),Y={};D.forEach(x=>{const y=x.d.getFullYear();Y[y]=(Y[y]||0)+x.got*x.rate;});
+ $("tab").insertAdjacentHTML("afterbegin",`<section class="box" id="rvbox"><div class="tools"><h2 style="margin:0">Past deals with ${esc(s.n)}</h2><button type="button" class="btn" id="rvx">Close</button></div><p class="note">Sample deals, newest first. Day and time are when the order was confirmed.</p>${hbars(Object.keys(Y).sort().reverse().map(y=>({label:"Total "+y,v:Y[y]})),inr)}<div class="tbl"><table><thead><tr><th>Date</th><th>Day</th><th>Time</th><th>Product</th><th class="n">Ordered</th><th class="n">Received</th><th class="n">Short</th><th class="n">Value</th><th>Payment</th></tr></thead><tbody>${D.map(x=>{const sh=x.ord-x.got;return `<tr><td>${x.d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</td><td>${x.d.toLocaleDateString("en-IN",{weekday:"long"})}</td><td>${x.d.toLocaleTimeString("en-IN",{hour:"numeric",minute:"2-digit"})}</td><td>${esc(x.p)}</td><td class="n">${x.ord}</td><td class="n">${x.got}</td><td class="n ${sh?"down":""}">${sh||"—"}</td><td class="n">${inr(x.got*x.rate)}</td><td><span class="pill ${x.paid?"good":"watch"}">${x.paid?"Paid":"Due"}</span></td></tr>`;}).join("")}</tbody></table></div></section>`);window.scrollTo(0,0);}
+const ST=TABS.find(x=>x[0]==="suppliers"),S0=ST[2];ST[2]=function(){S0();if(st.rv)panel();};
+$("tab").addEventListener("click",e=>{const b=e.target.closest("[data-rv]");if(b){st.rv=b.dataset.rv;ST[2]();return;}if(e.target.closest("#rvx")){st.rv=null;ST[2]();}});
+
+const CAT=`Beer & wine::Kingfisher|Kingfisher Strong beer 650 ml|130;Tuborg|Tuborg beer 650 ml|120;Budweiser|Budweiser Magnum 650 ml|150;Bira 91|Bira 91 White Ale 330 ml|150;Sula|Sula wine 750 ml|750
+Juices & water::Bisleri|Bisleri water 1 L|20;Kinley|Kinley water 1 L|20;Real|Real fruit juice 1 L|120;Tropicana|Tropicana juice 1 L|125;Paper Boat|Paper Boat 250 ml|30;Red Bull|Red Bull 250 ml|125
+Bags & luggage::Wildcraft|Wildcraft backpack|1499;American Tourister|American Tourister trolley bag 55 cm|3499;Skybags|Skybags school bag|1299;Safari|Safari trolley bag 65 cm|2999;Jute bag|Jute shopping bag|99
+Stationery::Classmate|Classmate notebook 172 pages|45;Reynolds|Reynolds ball pen 10-pack|80;Camlin|Camlin geometry box|120;Apsara|Apsara pencils 10-pack|50;Fevicol|Fevicol MR 100 g|45
+Baby care::Pampers|Pampers diapers M 30-pack|599;Huggies|Huggies diapers M 30-pack|549;Cerelac|Cerelac 300 g|260;Johnson's|Johnson's baby lotion 200 ml|230;Himalaya|Himalaya baby powder 200 g|140
+Skin care::Glow & Lovely|Glow & Lovely cream 50 g|140;Ponds|Ponds cream 100 g|180;Nivea|Nivea body lotion 400 ml|350;Vaseline|Vaseline lotion 400 ml|330;Garnier|Garnier face wash 100 g|220;Lakme|Lakme kajal|199
+Deodorants & perfume::Fogg|Fogg spray 150 ml|230;Axe|Axe spray 150 ml|215;Nivea Men|Nivea Men deo 150 ml|220;Engage|Engage perfume spray 120 ml|199
+Shaving & grooming::Gillette|Gillette Guard razor 3-pack|60;Gillette foam|Gillette shaving foam 418 g|340;Vi-John|Vi-John shaving cream 125 g|110;Veet|Veet hair removal cream 50 g|150
+Women's hygiene::Whisper|Whisper pads 30-pack|230;Stayfree|Stayfree pads 28-pack|220;Sofy|Sofy pads 24-pack|190
+Floor & toilet cleaners::Lizol|Lizol floor cleaner 975 ml|220;Harpic|Harpic toilet cleaner 500 ml|105;Domex|Domex 500 ml|95;Colin|Colin glass cleaner 500 ml|110
+Air fresheners & repellents::Odonil|Odonil block 75 g|60;Good Knight|Good Knight liquid refill 45 ml|85;All Out|All Out refill 45 ml|85;Hit|Hit spray 400 ml|215
+Pooja items::Cycle|Cycle agarbatti 100 g|60;Mangaldeep|Mangaldeep agarbatti 100 g|70;Camphor|Camphor 50 g|90;Pooja oil|Pooja oil 500 ml|140
+Pickles & sauces::Priya|Priya mango pickle 300 g|120;Kissan ketchup|Kissan tomato ketchup 500 g|120;Veeba|Veeba mayonnaise 250 g|110;Ching's|Ching's schezwan chutney 250 g|105
+Jams & spreads::Kissan jam|Kissan mixed fruit jam 500 g|170;Nutella|Nutella 350 g|450;Sundrop|Sundrop peanut butter 350 g|190;Amul cheese|Amul cheese slices 200 g|140
+Breakfast cereals::Kellogg's|Kellogg's corn flakes 475 g|215;Quaker|Quaker oats 1 kg|220;Saffola oats|Saffola oats 1 kg|200;Chocos|Kellogg's Chocos 375 g|230
+Ready to eat::MTR|MTR ready meal 300 g|95;Gits|Gits gulab jamun mix 200 g|90;Knorr|Knorr soup 4-pack|90
+Frozen foods::McCain|McCain french fries 400 g|140;Venky's|Venky's chicken nuggets 400 g|260;Safal|Safal frozen peas 500 g|110
+Ice cream::Kwality Walls|Kwality Walls tub 700 ml|280;Amul ice cream|Amul ice cream 1 L|260;Arun|Arun ice cream tub 700 ml|240
+Dry fruits & nuts::Almonds|Almonds 250 g|290;Cashew|Cashew 250 g|260;Raisins|Raisins 250 g|110;Dates|Dates 500 g|180;Pistachio|Pistachio 200 g|320
+Bread & bakery::Britannia bread|Britannia bread 400 g|45;Modern|Modern bread 400 g|45;Britannia cake|Britannia cake 60 g|20;Britannia rusk|Britannia rusk 200 g|50
+Sweets & namkeen::Haldiram sweets|Haldiram soan papdi 250 g|130;Bikaji|Bikaji bhujia 400 g|120;Mixture|Mixture (loose) per kg|240
+Eggs, meat & fish::Eggs|Eggs tray of 30|190;Chicken|Chicken (loose) per kg|240;Fish|Fish rohu (loose) per kg|260;Mutton|Mutton (loose) per kg|750
+Fruits & vegetables::Onion|Onion per kg|35;Tomato|Tomato per kg|30;Potato|Potato per kg|32;Banana|Banana per dozen|60;Apple|Apple per kg|180
+Pet food::Pedigree|Pedigree dog food 1.2 kg|420;Whiskas|Whiskas cat food 1.2 kg|380;Drools|Drools dog food 1.2 kg|390
+Health & wellness::Dettol|Dettol liquid 500 ml|230;Vicks|Vicks VapoRub 50 ml|130;Zandu|Zandu balm 25 ml|95;Dabur|Dabur Chyawanprash 1 kg|420;Band-Aid|Band-Aid 20-pack|45
+Kitchenware::Prestige|Prestige pressure cooker 5 L|2100;Hawkins|Hawkins pressure cooker 3 L|1700;Milton|Milton water bottle 1 L|350;Cello|Cello lunch box|399;Borosil|Borosil glass set of 6|550
+Plastic & storage::Tupperware|Tupperware box 1 L|450;Cello storage|Cello storage jar set|299;Nayasa|Nayasa bucket 20 L|220;Signoraware|Signoraware container 1 L|190
+Batteries & bulbs::Duracell|Duracell AA 4-pack|160;Eveready|Eveready AA 4-pack|60;Philips|Philips LED bulb 9 W|110;Syska|Syska LED bulb 9 W|95;Havells|Havells extension board|450
+Mobile accessories::boAt|boAt earphones|599;Mi|Mi power bank 10000 mAh|999;Samsung|Samsung charger 25 W|899;Ambrane|Ambrane cable 1 m|199
+Home electronics::Philips trimmer|Philips trimmer|1499;Prestige mixer|Prestige mixer grinder 750 W|3200;Bajaj iron|Bajaj dry iron|899;Usha fan|Usha table fan|1899
+Clothing & innerwear::Jockey|Jockey vest 2-pack|420;Rupa|Rupa briefs 3-pack|270;Levi's|Levi's T-shirt|899;Peter England|Peter England shirt|1199;Saree|Cotton saree|799
+Footwear::Paragon|Paragon slippers|249;Bata|Bata sandals|899;Sparx|Sparx sports shoes|999;Liberty|Liberty school shoes|749
+Toys & games::Funskool|Funskool board game|499;Lego|Lego set|1999;Hot Wheels|Hot Wheels car|99;Kids bat|Cricket bat (kids)|599
+Hardware & garden::Pidilite|Pidilite Dr. Fixit 1 kg|230;Hammer|Hammer|250;Plant pot|Plant pot|120;Mosquito net|Mosquito net|399`;
+const rc=rng(31337);
+CAT.split("\n").forEach(l=>{const q=l.split("::");q[1].split(";").forEach(it=>{const [b,n,p]=it.split("|"),pr=+p;PRODUCT_DEFS.push([q[0],b,n,1.6,pr,+(pr*.88).toFixed(1),Math.round((rc()-.5)*24),Math.floor(rc()*rc()*7),rc()<.2?3+Math.floor(rc()*8):0,/per kg/.test(n)?"kg":/dozen/.test(n)?"dozen":"pieces"]);});});
+function addForm(){if(st.tab!=="brands"||$("addp"))return;const cats=[...new Set(B.map(p=>p.cat))];
+ $("tab").insertAdjacentHTML("beforeend",`<section class="box" id="addp"><h2>Add your own product or group</h2><p class="note">Type any group (even a new one), brand, product with size, and the price of one piece. It joins the search straight away. In this sample it is lost when you reload; the real app saves it.</p><div class="controls"><label>Group<input id="ag" list="agl" placeholder="e.g. Luggage"></label><datalist id="agl">${cats.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><label>Brand<input id="ab"></label><label>Product and size<input id="an" placeholder="e.g. Shampoo 650 ml"></label><label>Price of 1 piece (₹)<input id="ap" type="number" min="1"></label><button type="button" class="btn go" id="aadd">Add</button></div><p class="note" id="amsg"></p></section>`);}
+new MutationObserver(addForm).observe($("tab"),{childList:true});
+$("tab").addEventListener("click",e=>{if(!e.target.closest("#aadd"))return;const c=$("ag").value.trim(),b=$("ab").value.trim(),n=$("an").value.trim(),p=+$("ap").value;if(!c||!b||!n||!(p>0)){$("amsg").textContent="Fill in group, brand, product and a price above 0.";return;}PRODUCT_DEFS.push([c,b,n,1.6,p,+(p*.88).toFixed(1),0,0,0,"pieces"]);prepare();st.bcat="All";st.bq=b;render();});
+st.role=null;gate();chip();
+})();
+</script>
+
+</body></html>
